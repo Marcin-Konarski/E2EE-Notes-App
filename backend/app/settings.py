@@ -44,6 +44,9 @@ INSTALLED_APPS = [
     'rest_framework', # pip install djangorestframework
     'django_filters', # pip install django-filter
     'debug_toolbar', # pip install django-debug-toolbar
+    # place for djoser
+    'accounts',
+    'notes',
 ]
 
 MIDDLEWARE = [
@@ -54,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware'
 ]
 
 ROOT_URLCONF = 'app.urls'
@@ -138,3 +142,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     'COERCE_DECIMAL_TO_STRING': False,
 }
+
+AUTH_USER_MODEL = 'accounts.User'

@@ -18,7 +18,12 @@ from django.contrib import admin
 from django.urls import path, include
 import debug_toolbar
 
+admin.site.site_header = 'change this field to something meaningful!!'
+admin.site.index_title = 'change this field as well'
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('accounts/', include('accounts.urls')),
+    path('notes/', include('notes.urls')),
     path('__debug__/', include(debug_toolbar.urls)),
 ]
