@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'rest_framework', # pip install djangorestframework
     'django_filters', # pip install django-filter
     'debug_toolbar', # pip install django-debug-toolbar
-    # place for djoser
+    'djoser',
     'accounts',
     'notes',
 ]
@@ -139,8 +139,23 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+AUTH_USER_MODEL = 'accounts.User'
+
+
 REST_FRAMEWORK = {
     'COERCE_DECIMAL_TO_STRING': False,
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication', # This comes from the JWT engine for djoser authentication
+    ),
 }
 
-AUTH_USER_MODEL = 'accounts.User'
+DJOSER = {
+    'TOKEN_MODEL': None, # Disable token based authentication
+}
+
+from datetime import timedelta #! remove this as well
+
+SIMPLE_JWT = {# This comes from the JWT engine for djoser authentication
+   'AUTH_HEADER_TYPES': ('Bearer', 'JWT'),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1), #! In the real app leave this as default!! Current change is just for learning django
+}
