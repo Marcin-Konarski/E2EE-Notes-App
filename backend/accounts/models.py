@@ -76,7 +76,7 @@ class User(BaseUser):
     class Meta(BaseUser.Meta):
         swappable = "AUTH_USER_MODEL"
 
-    id = models.UUIDField(primary_key=True, default=uuid4)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     
     def __str__(self) -> str:
         return self.username
@@ -86,7 +86,7 @@ class User(BaseUser):
 
 
 class UserAuthentication(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid4)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='key') # If the referenced User is deleted associated AuthenticationKey record is deleted as well
     is_verified = models.BooleanField(default=False) # Whether user has confirmed their email via email verification link
     public_key = models.BinaryField()
