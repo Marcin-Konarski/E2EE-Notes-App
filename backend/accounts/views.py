@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action
-from rest_framework.viewsets import GenericViewSet #, ModelViewSet
 from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin
+from rest_framework.viewsets import GenericViewSet #, ModelViewSet
 from rest_framework.response import Response
 
 from .models import User

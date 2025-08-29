@@ -22,7 +22,7 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(
         max_length=150,
         unique=True,
-        help_text=("Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only."),
+        # help_text=("Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only."),
         validators=[username_validator],
         error_messages={"unique": "A user with that username already exists."},
     )
@@ -77,7 +77,7 @@ class User(BaseUser):
         swappable = "AUTH_USER_MODEL"
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    
+
     def __str__(self) -> str:
         return self.username
 
