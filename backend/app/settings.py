@@ -140,6 +140,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.User'
+AUTH_USER_KEY_MODEL = 'accounts.UserKey'
 
 
 REST_FRAMEWORK = {

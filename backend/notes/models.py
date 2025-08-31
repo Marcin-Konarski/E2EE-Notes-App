@@ -7,10 +7,9 @@ from uuid import uuid4
 class Note(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     #! If owner_id on_delete is different than SET_NULL than change the null=False
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name='note') # Maybe change this to make it set to the last user that has permissions to this note???
     title = models.CharField(max_length=255)
-    body = models.TextField()
-    # status = what this was suppose to be????????????
+    body = models.BinaryField()
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name='note') # Maybe change this to make it set to the last user that has permissions to this note???
     is_encrypted = models.BooleanField(default=False)
     created_at = models.DateField(auto_now_add=True)
 
@@ -21,10 +20,22 @@ class Note(models.Model):
         ordering = ['title']
 
 class NoteItem(models.Model):
+    READ_PERMISSION = 'R'
+    WRITE_PERMISSION = 'W'
+    SHARE_PERMISSION = 'S'
+    OWNER_PERMISSION = 'O'
+    PERMISSIONS_CHOICES = [
+        (READ_PERMISSION, 'Read'),
+        (WRITE_PERMISSION, 'Write'),
+        (SHARE_PERMISSION, 'Share'),
+        (OWNER_PERMISSION, 'Owner')
+    ]
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     note = models.ForeignKey(Note, on_delete=models.CASCADE, related_name='noteitem')
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='noteitem')
-    encryption_key = models.BinaryField()
+    user_key = models.ForeignKey(settings.AUTH_USER_KEY_MODEL, on_delete=models.CASCADE, related_name='noteitem')
+    encryption_key = models.BinaryField(null=True, blank=True, db_column='encrypted_symmetric_key')
+    permission = models.CharField(max_length=1, choices=PERMISSIONS_CHOICES, default=READ_PERMISSION)
 
     class Meta:
-        unique_together = ("note_id", "user_id")
+        unique_together = ("note", "user_key")
+        ordering = ['permission']

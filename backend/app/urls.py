@@ -23,7 +23,7 @@ admin.site.index_title = 'change this field as well'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/', include('accounts.urls')),
+    path('users/', include('accounts.urls')),
     path('notes/', include('notes.urls')),
     path('auth/', include('djoser.urls')),
     path('auth/', include('djoser.urls.jwt')),

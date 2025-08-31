@@ -1,0 +1,45 @@
+SELECT n.id, title, body, is_encrypted, encrypted_symmetric_key FROM notes_note AS n LEFT JOIN notes_noteitem AS ni on n.id=ni.note_id WHERE n.id='';
+
+
+POST /users/keys/
+
+{
+    "public_key": ""
+}
+
+
+
+
+POST /notes/notes/
+{
+    "title": "",
+    "body": "",
+    "is_encrypted": true,
+    "encryption_key": ""
+}
+
+
+
+PUT /notes/notes/<id>/set_encryption/
+{
+    "body": "",
+    "encryption": {
+        "enabled": true,
+        "key": ""
+    }
+}
+
+
+
+
+POST http://127.0.0.1:8000/notes/notes/<id>/share/
+{
+    "user": "",
+    "encryption_key": "symmetric key 1",
+    "permission": "W"
+}
+
+
+
+
+

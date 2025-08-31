@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, UserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.mail import send_mail
@@ -58,8 +59,8 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
 
     def get_full_name(self):
         """
-        This shouldn't be never used as the app uses usernames instead of real names
-        however it's included in case some other functionality depends on this function.
+        This shouldn't be ever used as the app uses usernames instead of real names
+        however it's defined in case some other functionality depends on this function.
         """
         return self.username.strip()
 
@@ -73,21 +74,27 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
 
 
 class User(BaseUser):
-    class Meta(BaseUser.Meta):
-        swappable = "AUTH_USER_MODEL"
-
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    is_verified = models.BooleanField(default=False) # Whether user has confirmed their email via email verification link
 
     def __str__(self) -> str:
         return self.username
 
-    class Meta:
+    class Meta(BaseUser.Meta):
+        swappable = "AUTH_USER_MODEL"
         ordering = ['username']
 
 
-class UserAuthentication(models.Model):
+class UserKey(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='key') # If the referenced User is deleted associated AuthenticationKey record is deleted as well
-    is_verified = models.BooleanField(default=False) # Whether user has confirmed their email via email verification link
-    public_key = models.BinaryField()
-    created_at = models.DateField(auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='keys') # If the referenced User is deleted associated AuthenticationKey record is deleted as well
+    public_key = models.BinaryField(blank=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def clean(self):
+        super().clean()
+        if not self.public_key:
+            raise ValidationError({'public_key': 'Public key is required and cannot be empty.'})
+
+    class Meta:
+        swappable = "AUTH_USER_KEY_MODEL"

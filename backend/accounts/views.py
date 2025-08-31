@@ -4,11 +4,11 @@ from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, UpdateMo
 from rest_framework.viewsets import GenericViewSet #, ModelViewSet
 from rest_framework.response import Response
 
-from .models import User
-from .serializers import UserCreateSerializer, UserSerializer, UserUpdateSerializer
+from .models import User, UserKey
+from .serializers import UserCreateSerializer, UserSerializer, UserUpdateSerializer, UserKeySerializer
 
 
-class UserViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, GenericViewSet):
+class UserViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, GenericViewSet): # No list action here
     queryset = User.objects.all()
     serializer_class = UserCreateSerializer
 
@@ -27,3 +27,13 @@ class UserViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destro
         elif request.method == 'DELETE':
             user.delete()
             return Response(user.id)
+
+
+class UserKeyViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet): # No list and update actions here
+    queryset = UserKey.objects.all()
+    serializer_class = UserKeySerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({'user_id': self.request.user.id})
+        return context
