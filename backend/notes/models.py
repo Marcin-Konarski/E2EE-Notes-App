@@ -34,7 +34,7 @@ class NoteItem(models.Model):
     note = models.ForeignKey(Note, on_delete=models.CASCADE, related_name='noteitem')
     user_key = models.ForeignKey(settings.AUTH_USER_KEY_MODEL, on_delete=models.CASCADE, related_name='noteitem')
     encryption_key = models.BinaryField(null=True, blank=True, db_column='encrypted_symmetric_key')
-    permission = models.CharField(max_length=1, choices=PERMISSIONS_CHOICES, default=READ_PERMISSION)
+    permission = models.CharField(max_length=1, choices=PERMISSIONS_CHOICES, default=READ_PERMISSION, blank=False)
 
     class Meta:
         unique_together = ("note", "user_key")

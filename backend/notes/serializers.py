@@ -26,6 +26,7 @@ class BaseNoteSerializer(serializers.ModelSerializer):
             data['body'] = body_bytes.decode('utf-8') # now decode the body to in order to print readable result in the JSON response
         return data
 
+
 class NotesSerializer(BaseNoteSerializer):
     noteitem = NoteItemSerializer(many=True, required=False)
     encryption_key = serializers.CharField(write_only=True, required=False)
@@ -44,16 +45,9 @@ class NotesSerializer(BaseNoteSerializer):
         if not hasattr(request, 'user') or isinstance(request.user, AnonymousUser): # If request doesn't have attribute user or user if the instance of AnonymousUser
             raise serializers.ValidationError({'detail': 'No User matches the given query.'})
 
-        # if request and hasattr(request, 'user'): 
+        # If request and hasattr(request, 'user'): 
         validated_data['owner'] = request.user # Get currently logged in user and save it as a note owner
         note = Note.objects.create(**validated_data) # create Note object
-
-        # If note is not encrypted than don't create NoteItem as it's not necessary (NoteItem holds public key used to encrypt this note's symmetric key -> if note is not encrypted then public key is not needed)
-        if not is_encrypted:
-            return note
-
-        if not encryption_key: # If the reuqest has is_encrypted=True but encryption_key is not provided return a response
-            raise serializers.ValidationError({'detail': ['Public key required for encrypted notes. Create one at POST /users/users/keys/']})
 
         get_user_key = self.context.get('get_user_key') # This is a function created in a NotesViewSet to verify if the user has associated UserKey object - as user without public_key cannot encrypt/decrypt the note thus UserKey record for a user is required
         if get_user_key:
@@ -61,15 +55,20 @@ class NotesSerializer(BaseNoteSerializer):
             if not user_key:
                 raise serializers.ValidationError({'non_field_errors': ['Public key required for encrypted notes. Create one at POST /users/users/keys/']})
 
-        # #! CURRENTLY USER CAN HAVE MANY USERKEY RECORDS SO FILTER WILL RETURN A LIST OF OBJECTS
-        # #TODO: DO SOMETHING WITH THIS ^^ - EITHER ADDITIONAL QUERY OR ANSURE THAT A USER CAN HAVE JUST ONE USERKEY OBJECT -- DUNNO YET
-        # try:
-        #     UserKey = apps.get_model(settings.AUTH_USER_KEY_MODEL) # Get the UserKey model from the settings - this approach maintains the principle of loose coupling between apps (I think)
-        #     user_key = UserKey.objects.get(user=request.user.id) # Query UserKey table for record with current user's id
-        # except UserKey.DoesNotExist:
-        #     raise serializers.ValidationError({'detail': 'For encrypted notes public key must first be provided via: /users/users/keys/ POST endpoint'})
+        # If note is not encrypted than don't create encryption key for this NoteItem as it's not necessary
+        if request and is_encrypted == False:
+            NoteItem.objects.create(
+                note=note,
+                user_key=user_key,
+                permission='O'
+            )
+            return note
 
-        if request and encryption_key: # If encryption_key exists and is_encrypted == True create NoteItem object for the current user
+        # If the reuqest has is_encrypted=True but encryption_key is not provided return a response
+        if not encryption_key:
+            raise serializers.ValidationError({'detail': ['\'encryption_key\' field is required for encrypted notes']})
+
+        if request and encryption_key: # If encryption_key exists and is_encrypted == True create NoteItem object with encryption key for current user
             NoteItem.objects.create(
                 note=note,
                 user_key=user_key,
@@ -78,6 +77,7 @@ class NotesSerializer(BaseNoteSerializer):
             )
 
         return note
+    
 
 
 class NotesDetailSerializer(BaseNoteSerializer):
@@ -87,6 +87,7 @@ class NotesDetailSerializer(BaseNoteSerializer):
         model = Note
         fields = ['id', 'title', 'body', 'is_encrypted', 'created_at', 'encryption_key', 'noteitem']
         read_only_fields = ['id', 'is_encrypted', 'created_at', 'noteitem']
+
 
 
 class SetEncryptionSerializer(serializers.Serializer):
@@ -111,6 +112,12 @@ class SetEncryptionSerializer(serializers.Serializer):
 
 
 class ShareSerializer(serializers.Serializer):
+    permission = serializers.ChoiceField(choices=NoteItem.PERMISSIONS_CHOICES, required=True, allow_blank=False)
+    class Meta:
+        fields = ['id', 'user', 'permission']
+
+class ShareEncryptedSerializer(serializers.Serializer):
+    permission = serializers.ChoiceField(choices=NoteItem.PERMISSIONS_CHOICES, required=True, allow_blank=False)
     encryption_key = serializers.CharField(write_only=True)
     class Meta:
         fields = ['id', 'user', 'encryption_key', 'permission']

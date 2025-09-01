@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action
 from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin
 from rest_framework.viewsets import GenericViewSet #, ModelViewSet
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from .models import User, UserKey
@@ -11,7 +12,12 @@ from .serializers import UserCreateSerializer, UserSerializer, UserUpdateSeriali
 class UserViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, GenericViewSet): # No list action here
     queryset = User.objects.all()
     serializer_class = UserCreateSerializer
+    # permission_classes = [AllowAny]
 
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     @action(detail=False, methods=['GET', 'PUT', 'DELETE'])
     def me(self, request):

@@ -1,4 +1,19 @@
-SELECT n.id, title, body, is_encrypted, encrypted_symmetric_key FROM notes_note AS n LEFT JOIN notes_noteitem AS ni on n.id=ni.note_id WHERE n.id='';
+SELECT u.id, u.email, u.username, u.is_verified, k.public_key, k.id AS userkey_id FROM accounts_user as u INNER JOIN accounts_userkey as k ON u.id = k.user_id;
+
+
+
+SELECT i.id AS note_share_id, n.id AS note_id, n.title, n.is_encrypted, n.owner_id, i.encrypted_symmetric_key AS key, i.user_key_id, i.permission FROM notes_note AS n LEFT JOIN notes_noteitem AS i ON n.id = i.note_id ORDER BY note_id;
+
+
+
+
+
+POST /auth/jwt/create/
+{
+    "username": "",
+    "password": ""
+}
+
 
 
 POST /users/keys/
@@ -20,7 +35,7 @@ POST /notes/notes/
 
 
 
-PUT /notes/notes/<id>/set_encryption/
+PUT /notes/notes/<id>/change_encryption/
 {
     "body": "",
     "encryption": {
@@ -35,8 +50,8 @@ PUT /notes/notes/<id>/set_encryption/
 POST http://127.0.0.1:8000/notes/notes/<id>/share/
 {
     "user": "",
-    "encryption_key": "symmetric key 1",
-    "permission": "W"
+    "encryption_key": "",
+    "permission": ""
 }
 
 
