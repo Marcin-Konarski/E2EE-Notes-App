@@ -9,7 +9,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Note, NoteItem
-from .serializers import NotesSerializer, NotesDetailSerializer, SetEncryptionSerializer, ShareSerializer, ShareEncryptedSerializer
+from .serializers import NotesSerializer, NoteMeSerializer, NotesDetailSerializer, UserKeyInfoSerializer, \
+            ChangeEncryptionSerializer, ShareNoteSerializer, ShareEncryptedNoteSerializer, GetPublicKeySerializer
 from .permissions import CanReadNote, CanWriteNote, CanShareNote, CanDeleteNote, CanChangeEncryption
 
 
@@ -18,15 +19,16 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
     queryset = Note.objects.all()
     serializer_class = NotesSerializer
 
-    def _get_user_key(self, user_id):
+    def _get_user_key(self, user_id_list):
         """Utility method to get UserKey for a user from settings Returns UserKey instance or None if not found."""
         #! CURRENTLY USER CAN HAVE MANY USERKEY RECORDS SO FILTER WILL RETURN A LIST OF OBJECTS
-        #TODO: DO SOMETHING WITH THIS ^^ - EITHER ADDITIONAL QUERY OR ANSURE THAT A USER CAN HAVE JUST ONE USERKEY OBJECT -- DUNNO YET
+        #TODO: DO SOMETHING WITH THIS ^^ - EITHER ADDITIONAL QUERY OR ENSURE THAT A USER CAN HAVE JUST ONE USERKEY OBJECT -- DUNNO YET
         try:
-            UserKey = apps.get_model(settings.AUTH_USER_KEY_MODEL) # Get the UserKey model from the setting - this approach maintains the principle of loose coupling between apps (I think)
-            user_key = UserKey.objects.get(user=user_id) # Query UserKey table for record with current user's id
-            # print(f'user_key:\t{user_key}')
-            return user_key
+            UserKey = apps.get_model(settings.AUTH_USER_KEY_MODEL) # Get the UserKey model from the settings - this approach maintains the principle of loose coupling between apps (I think)
+            user_key_list = [UserKey.objects.get(user=user_id) for user_id in user_id_list]
+            if 1 == len(user_key_list):
+                return user_key_list[0]
+            return user_key_list
         except UserKey.DoesNotExist:
             return None
         except (LookupError, AttributeError):
@@ -57,6 +59,7 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
             return NotesSerializer # Basic info for list/create
         return NotesDetailSerializer # Detailed info for retrieve/update/delete of specific note
 
+
     def get_serializer_context(self):
         """Return owner_id in the context in order to automatically set owner id during notes creation"""
         context = super().get_serializer_context()
@@ -67,10 +70,16 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
 
     @action(detail=False, methods=['GET'])
     def me(self, request):
-        """Get all notes of currently logged in user"""
-        notes = Note.objects.filter(owner_id=request.user.id) # query for all notes which owner_id == currently logged in user
-        # if request.method == 'GET':
-        data = [NotesSerializer(note).data for note in notes] # serialize all those notes
+        """Get all notes that current user has access to"""
+        # notes = Note.objects.filter(owner_id=request.user.id) # query for all notes which owner_id == currently logged in user
+        # # if request.method == 'GET':
+        # data = [NotesSerializer(note).data for note in notes] # serialize all those notes
+        # return Response(data, status=status.HTTP_200_OK)
+
+        user_key = self._get_user_key([request.user.id])
+        note_items = NoteItem.objects.filter(user_key=user_key).select_related('note')
+        data = [NoteMeSerializer(note_item).data for note_item in note_items]
+
         return Response(data, status=status.HTTP_200_OK)
 
 
@@ -80,43 +89,66 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
     # !!!!!!!!!!!!!!!!!!!
     @action(detail=True, methods=['PUT'])
     def change_encryption(self, request, pk=None):
-        """If encryption key is sent then set note as encrypted otherwise set as not encrypted. Body id always required as the representation of the note changes - encrypted text is different than unencrypted"""
+        """
+        This endpoint requires encrypted symmetric keys for all users that have access to the note
+        (as symmetric key is encrypted with each users' public key and storred in the NoteItem.
+        Also encrypted note's body differs from unencrypted thus new body is mandatory to store along those keys)
+        """
         note = self.get_object() # Automatically get the note by pk from URL
 
-        serializer = SetEncryptionSerializer(data=request.data)
+        serializer = ChangeEncryptionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        enabled = request.data.get('encryption').get('enabled')
-        encryption_key = request.data.get('encryption').get('key')
-        new_note_body = request.data.get('body')
+        new_note_body = request.data.get('new_body')
+        is_encrypted = request.data.get('is_encrypted')
+        encryption_keys = request.data.get('keys')
 
-        # if note.owner.id != request.user.id:
-        #     return Response({'detail': ['Permission denied. Only note owner can change Note\'s encryption state']}, status=status.HTTP_403_FORBIDDEN)
+        note.body = new_note_body.encode('utf-8') # Set new body
+        note.is_encrypted = is_encrypted # Set encrypted state
+        note.save() # Save this note in db (I always forget)
 
-        user_key = self._get_user_key(request.user.id)
-        if not user_key:
-            return Response({'non_field_errors': ['Public key required for encrypted notes. Create one at POST /users/users/keys/']}, status=status.HTTP_400_BAD_REQUEST)
+        # Disable encryption
+        if not is_encrypted:
+            NoteItem.objects.filter(note=note).update(encryption_key=None) # If id_encrypted is set to false (notes are no longer encrypted) than delete encryption_keys for all users who have access to this nore as they (keys) are no longer needed
+            return Response({
+                'detail': 'Encryption disabled successfully',
+                'note_id': str(note.id),
+                'is_encrypted': is_encrypted,
+                'users_affected': NoteItem.objects.filter(note=note).count()
+            }, status=status.HTTP_200_OK)
 
-        if enabled: # If encryption key is provided than get NoteItem object for this note
-            note_item, created = NoteItem.objects.get_or_create(
-                note=note,
-                user_key=user_key
-            )
-            note_item.encryption_key = encryption_key.encode('utf-8') # Change\Set encryption key to provided one
-            note_item.save() # AND SAVE THE NOTE!
-            note.is_encrypted = True # Mark as encrypted
-        else: # `if not enabled` means that in JSON request enabled is set to false thus notes should not be encrypted anymore
-            try:
-                # NoteItem.objects.get(note=note, user=request.user).delete() # Delete NoteItem for current user and current note as it's no longer needed if note is not encrypted
-                NoteItem.objects.filter(note=note).update(encryption_key=None) # If Note is not to be encypted than remove encryption key for all users who have access to this note as it's no longer needed
-                note.is_encrypted = False # Mark as not encrypted
-            except NoteItem.DoesNotExist:
-                pass
 
-        note.body = new_note_body.encode('utf-8') # Chagne the body to provided as the representation of encrypted body is always different then not encrypted 
-        note.save()
+        # Enable/Update encryption:
+        note_items = NoteItem.objects.filter(note=note).select_related('user_key').all() # Query for all NoteItems associated with current note and get related UserKeys in order to mathc user ids
+        new_symmetric_keys_lookup = {key.get('user_id'): key.get('key') for key in encryption_keys} # Create a lookup dict from JSON data for O(n) complexity. This line results in {user_id: symmetric_key} dictionary
 
-        return Response({"id": note.id, "encryption": {"enabled": enabled, "key": encryption_key}}, status=status.HTTP_200_OK)
+        required_user_ids = {str(note_item.user_key.user.id) for note_item in note_items} # Get all user IDs that have access to the note
+        provided_user_ids = set(new_symmetric_keys_lookup.keys()) # Get all user IDs that were provided in the request
+        missing_user_ids = required_user_ids - provided_user_ids # Find missing user IDs
+
+        if missing_user_ids:
+            return Response({
+                'error': 'Missing encryption keys',
+                'detail': f'Encryption keys required for all users with access to this note',
+                'required_users': list(required_user_ids),
+                'missing_users': list(missing_user_ids)
+            }, status=status.HTTP_400_BAD_REQUEST) # Return info with all missing user ids
+
+        # Update symmetric keys in db:
+        for note_item in note_items:
+            note_item_user_id = str(note_item.user_key.user.id) # Get user id from current NoteItem
+            new_symmetric_key = new_symmetric_keys_lookup.get(note_item_user_id) # Get encrypted symmtric key associated with user id; using `[]` instead of .get() method as I want to raise excption if encryption keys were NOT provided for ALL users 
+            if new_symmetric_key:
+                note_item.encryption_key = new_symmetric_key.encode('utf-8')
+                note_item.save()
+
+        return Response({
+            'detail': 'Encryption updated successfully',
+            'note_id': str(note.id),
+            'is_encrypted': is_encrypted,
+            'users': list(provided_user_ids)
+        }, status=status.HTTP_200_OK)
+
 
 
     @action(detail=True, methods=['GET', 'POST'])
@@ -137,57 +169,64 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
             ]
             return Response({'shared_with': shared_users})
 
-        # POST method - share the note
-        if note.is_encrypted: # Check if note is encrypted and based on that require (or don't) encryption_key in JSON
-            serializer = ShareEncryptedSerializer(data=request.data)
-        else:
-            serializer = ShareSerializer(data=request.data) # For not encrypted notes don't require encryption_key in JSON
-        serializer.is_valid(raise_exception=True)
+        elif request.method == 'POST':
+            # POST method - share the note
+            if note.is_encrypted: # Check if note is encrypted and based on that require (or don't) encryption_key in JSON
+                serializer = ShareEncryptedNoteSerializer(data=request.data)
+            else:
+                serializer = ShareNoteSerializer(data=request.data) # For not encrypted notes don't require encryption_key in JSON
+            serializer.is_valid(raise_exception=True)
 
-        target_user = request.data.get('user')
-        encryption_key = request.data.get('encryption_key')
-        permission = request.data.get('permission')
+            target_user = request.data.get('user')
+            encryption_key = request.data.get('encryption_key')
+            permission = request.data.get('permission')
 
-        user_key_target = self._get_user_key(target_user) # This is a UserKey instance of a user that the note will be shared to
-        user_key_current = self._get_user_key(request.user.id) # This is a UserKey of a user that shares the note
+            user_key_target = self._get_user_key([target_user]) # This is a UserKey instance of a user that the note will be shared to
+            user_key_current = self._get_user_key([request.user.id]) # This is a UserKey of a user that shares the note
 
-        # Verify if the target user has alreasy access to this noote
-        if NoteItem.objects.filter(note=note, user_key=user_key_target).exists():
-            return Response({'detail': f'User {target_user} has already access to this note'})
+            # Verify if the target user has already access to this noote
+            if NoteItem.objects.filter(note=note, user_key=user_key_target).exists():
+                return Response({'detail': f'User {target_user} has already access to this note'})
 
-        # # Now in order to check if current user have permissions to share the note:
-        # try:
-        #     current_user_note_item = NoteItem.objects.get(note=note, user_key_id=user_key_current.id) # Get the NoteItem of a user that shares as the NoteItem has the info about the user's permissions to notes
-        #     current_user_permission = current_user_note_item.permission
-        # except NoteItem.DoesNotExist:
-        #     # # If user is owner but has no NoteItem, allow sharing
-        #     # if note.owner.id == owner_id:
-        #     #     current_user_permission = 'O' #! But this should create noteitem instead. However user should __ALWAYS__ HAVE A NOTEITEM even if note is not encrypted - than only the encryption key is empty
-        #     # else:
-        #     return Response({'detail': 'You do not have access to this note'}, status=status.HTTP_403_FORBIDDEN)
+            if note.is_encrypted and not user_key_target:
+                return Response({'non_field_errors': [f'Public key required for encrypted notes. User {target_user} has to create UserKey at /users/users/keys/']}, status=status.HTTP_400_BAD_REQUEST)
 
-        # if note.owner.id != request.user.id and current_user_permission not in ['S', 'O']: # Ensure only owner can share notes or user has sufficient permissions. 'O' means Owner permissions
-        #     return Response({'detail': 'Permission denied. Only owner and users with owner \'permissions\' can share notes'}, status=status.HTTP_403_FORBIDDEN)
+            if note.is_encrypted:
+                new_note_item = NoteItem.objects.create(
+                    note=note,
+                    user_key=user_key_target,
+                    encryption_key=encryption_key.encode('utf-8'), # Only for encrypted notes set encryption_key, empty otherwise
+                    permission=permission
+                )
+            else:
+                new_note_item = NoteItem.objects.create(
+                    note=note,
+                    user_key=user_key_target,
+                    permission=permission
+                )
 
-        # If note is encrypted than user to whom note will be shared to needs to have public key which allows to encrypt note's symmetric key. Otherwise return a message
-        if note.is_encrypted and not user_key_target:
-            return Response({'non_field_errors': [f'Public key required for encrypted notes. User {target_user} has to create UserKey at /users/users/keys/']}, status=status.HTTP_400_BAD_REQUEST)
-
-
-        if note.is_encrypted:
-            new_note_item = NoteItem.objects.create(
-                note=note,
-                user_key=user_key_target,
-                encryption_key=encryption_key.encode('utf-8'), # Only for encrypted notes set encryption_key, empty otherwise
-                permission=permission
-            )
-        else:
-            new_note_item = NoteItem.objects.create(
-                note=note,
-                user_key=user_key_target,
-                permission=permission
-            )
-
-        return Response({'detail': f'Note shared: {new_note_item.id}'}, status=status.HTTP_201_CREATED)
+            return Response({'detail': f'Note shared: {new_note_item.id}'}, status=status.HTTP_201_CREATED)
 
 
+    @action(detail=True, methods=['GET'])
+    def get_public_keys(self, request, pk=None):
+        note = self.get_object()
+        # Get user keys for current note as UserKey entries hold the user's public keys and in order to properly encrypt notes symmetric key must be encrypted with public keys of all users who have access to the note
+        note_items = NoteItem.objects.filter(note=note).select_related('user_key__user') # Here also get user that is realted to this user_key record as we want to reutrn user.id as well
+
+        # Create the response data structure
+        response_data = {
+            'id': str(note.id),
+            'keys': note_items
+        }
+
+        serializer = GetPublicKeySerializer(response_data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+# if a := True:
+#     if b := a:
+#         if c := b:
+#             if d := c:
+#                 if e := d:
+#                     print(not e)

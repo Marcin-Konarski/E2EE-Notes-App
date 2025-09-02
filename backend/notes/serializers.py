@@ -5,11 +5,14 @@ from rest_framework import serializers
 
 from .models import Note, NoteItem
 
+
+
 class NoteItemSerializer(serializers.ModelSerializer):
     encryption_key = serializers.CharField(write_only=True)
     class Meta:
         model = NoteItem
         fields = ['id', 'note', 'user_key', 'encryption_key', 'permission']
+
 
 class BaseNoteSerializer(serializers.ModelSerializer):
     body = serializers.CharField(required=True, allow_blank=False)
@@ -34,7 +37,7 @@ class NotesSerializer(BaseNoteSerializer):
 
     class Meta:
         model = Note
-        fields = ['id', 'title', 'body', 'owner', 'is_encrypted', 'created_at', 'noteitem', 'encryption_key']
+        fields = ['id', 'title', 'body', 'owner', 'is_encrypted', 'created_at', 'encryption_key', 'noteitem']
         read_only_fields = ['owner', 'noteitem']
 
     def create(self, validated_data):
@@ -51,7 +54,7 @@ class NotesSerializer(BaseNoteSerializer):
 
         get_user_key = self.context.get('get_user_key') # This is a function created in a NotesViewSet to verify if the user has associated UserKey object - as user without public_key cannot encrypt/decrypt the note thus UserKey record for a user is required
         if get_user_key:
-            user_key = get_user_key(request.user.id)
+            user_key = get_user_key([request.user.id])
             if not user_key:
                 raise serializers.ValidationError({'non_field_errors': ['Public key required for encrypted notes. Create one at POST /users/users/keys/']})
 
@@ -77,7 +80,31 @@ class NotesSerializer(BaseNoteSerializer):
             )
 
         return note
-    
+
+
+class NoteMeSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(source='note.id')
+    title = serializers.CharField(source='note.title')
+    body = serializers.SerializerMethodField(method_name='get_body')
+    owner = serializers.CharField(source='note.owner.username')
+    is_encrypted = serializers.BooleanField(source='note.is_encrypted')
+    created_at = serializers.DateField(source='note.created_at')
+    encryption_key = serializers.SerializerMethodField()
+
+    class Meta:
+        model = NoteItem
+        fields = ['id', 'title', 'body', 'owner', 'is_encrypted', 'created_at', 'encryption_key', 'permission']
+
+    def get_body(self, obj):
+        if obj.note.body:
+            body_bytes = bytes(obj.note.body)
+            return body_bytes.decode('utf-8')
+        return ""
+
+    def get_encryption_key(self, obj):
+        if obj.encryption_key:
+            return bytes(obj.encryption_key).decode('utf-8') # Get encryption key if it exists (this field is empty if notes are not encrypted)
+        return None
 
 
 class NotesDetailSerializer(BaseNoteSerializer):
@@ -89,35 +116,82 @@ class NotesDetailSerializer(BaseNoteSerializer):
         read_only_fields = ['id', 'is_encrypted', 'created_at', 'noteitem']
 
 
+class UserKeyInfoSerializer(serializers.Serializer):
+    user_id = serializers.CharField(source='user_key.user.id')
+    key = serializers.SerializerMethodField(method_name='get_key')
+    permission = serializers.CharField(required=False)
 
-class SetEncryptionSerializer(serializers.Serializer):
-    body = serializers.CharField(required=True, allow_blank=False)
-    encryption = serializers.DictField(required=True)
-    
-    def validate_encryption(self, value):
-        """Validate the encryption object structure"""
-        if 'enabled' not in value:
-            raise serializers.ValidationError("'enabled' field is required in encryption object")
+    def __init__(self, instance=None, data=None, **kwargs):
+        """This method allows for dynamically defining if 'permission' field should be included in the request/response"""
+        include_permissions = kwargs.pop('include_permissions', True) # Here remove this include_permissions before calling super() to avoid errors
+        super().__init__(instance=instance, data=data, **kwargs)
 
-        if not isinstance(value['enabled'], bool):
-            raise serializers.ValidationError("'enabled' must be a boolean value")
+        if not include_permissions:
+            self.fields.pop('permission', None)
 
-        if 'key' not in value and value['enabled'] == True: # If enabled is false than the key is not necessary as we mark note as not encrypted
-            raise serializers.ValidationError("'key' field is required in encryption object")
-        
-        if value['enabled'] and not value['key']:
-            raise serializers.ValidationError("'key' cannot be empty when encryption is enabled")
-        
+    def get_key(self, obj):
+        if key := obj.user_key.public_key: # If user has assiciated user_key record (although always should have one) return readable representation of this key
+            return bytes(key).decode('utf-8')
+        return None
+
+
+# class ChangeEncryptionSerializer(serializers.Serializer):
+#     new_body = serializers.CharField(source='note.body', required=True, allow_blank=False)
+#     is_encrypted = serializers.BooleanField(source='note.is_encrypted', required=True)
+#     keys = UserKeyInfoSerializer(many=True, required=False, include_permissions=False)
+#     class Meta:
+#         fields = ['new_body', 'is_encrypted', 'keys']
+
+
+class ChangeEncryptionSerializer(serializers.Serializer):
+    new_body = serializers.CharField(required=True, allow_blank=False)
+    is_encrypted = serializers.BooleanField(required=True)
+    keys = serializers.ListField(
+        child=serializers.DictField(), 
+        required=False, 
+        allow_empty=True
+    )
+
+    def validate_keys(self, value): # Validate that each key has required fields
+        if not value:
+            return value
+
+        errors = []
+        for i, key_data in enumerate(value):
+            if 'user_id' not in key_data or not key_data['user_id']:
+                errors.append(f"Key {i+1}: 'user_id' field is required")
+            if 'key' not in key_data or not key_data['key']:
+                errors.append(f"Key {i+1}: 'key' field is required")
+
+        if errors:
+            raise serializers.ValidationError(errors)
         return value
 
+    def validate(self, data):
+        is_encrypted = data.get('is_encrypted')
+        keys = data.get('keys', [])
 
-class ShareSerializer(serializers.Serializer):
+        if is_encrypted and not keys:
+            raise serializers.ValidationError({'keys': 'Encryption keys are required when is_encrypted=true'})
+
+        return data
+
+
+class ShareNoteSerializer(serializers.Serializer):
     permission = serializers.ChoiceField(choices=NoteItem.PERMISSIONS_CHOICES, required=True, allow_blank=False)
     class Meta:
         fields = ['id', 'user', 'permission']
 
-class ShareEncryptedSerializer(serializers.Serializer):
+
+class ShareEncryptedNoteSerializer(serializers.Serializer):
     permission = serializers.ChoiceField(choices=NoteItem.PERMISSIONS_CHOICES, required=True, allow_blank=False)
     encryption_key = serializers.CharField(write_only=True)
     class Meta:
         fields = ['id', 'user', 'encryption_key', 'permission']
+
+
+class GetPublicKeySerializer(serializers.Serializer):
+    id = serializers.CharField()
+    keys = UserKeyInfoSerializer(many=True, include_permissions=True)
+    class Meta:
+        fields = ['id', 'keys']
