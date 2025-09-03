@@ -20,13 +20,13 @@ class BaseNoteSerializer(serializers.ModelSerializer):
     def validate_body(self, value):
         if not value:
             raise serializers.ValidationError("Body is required and cannot be empty.")
-        return value.encode('utf-8')
+        return value.encode(settings.DEFAULT_ENCODING)
 
     def to_representation(self, instance):
         data = super().to_representation(instance) # Get data
         if instance.body:
             body_bytes = bytes(instance.body) # convert body from the request to binary (cuz postgres returns memoryview object which doesn't have decode method)
-            data['body'] = body_bytes.decode('utf-8') # now decode the body to in order to print readable result in the JSON response
+            data['body'] = body_bytes.decode(settings.DEFAULT_ENCODING) # now decode the body to in order to print readable result in the JSON response
         return data
 
 
@@ -75,7 +75,7 @@ class NotesSerializer(BaseNoteSerializer):
             NoteItem.objects.create(
                 note=note,
                 user_key=user_key,
-                encryption_key=encryption_key.encode('utf-8'), # Convert string to bytes for BinaryField
+                encryption_key=encryption_key.encode(settings.DEFAULT_ENCODING), # Convert string to bytes for BinaryField
                 permission='O'
             )
 
@@ -98,12 +98,12 @@ class NoteMeSerializer(serializers.ModelSerializer):
     def get_body(self, obj):
         if obj.note.body:
             body_bytes = bytes(obj.note.body)
-            return body_bytes.decode('utf-8')
+            return body_bytes.decode(settings.DEFAULT_ENCODING)
         return ""
 
     def get_encryption_key(self, obj):
         if obj.encryption_key:
-            return bytes(obj.encryption_key).decode('utf-8') # Get encryption key if it exists (this field is empty if notes are not encrypted)
+            return bytes(obj.encryption_key).decode(settings.DEFAULT_ENCODING) # Get encryption key if it exists (this field is empty if notes are not encrypted)
         return None
 
 
@@ -131,7 +131,7 @@ class UserKeyInfoSerializer(serializers.Serializer):
 
     def get_key(self, obj):
         if key := obj.user_key.public_key: # If user has assiciated user_key record (although always should have one) return readable representation of this key
-            return bytes(key).decode('utf-8')
+            return bytes(key).decode(settings.DEFAULT_ENCODING)
         return None
 
 

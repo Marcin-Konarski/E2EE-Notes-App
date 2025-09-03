@@ -6,6 +6,25 @@ SELECT i.id AS note_share_id, n.id AS note_id, n.title, n.is_encrypted, n.owner_
 
 
 
+POST /users/users/
+{
+    "username": "",
+    "email": "",
+    "password": ""
+}
+
+
+GET /users/users/me/
+
+
+PUT /users/users/me/
+{
+    "username": "miquelbrydan",
+    "email": "miquel.brydan@malldrops.com",
+}
+
+
+DELETE /users/users/me/
 
 
 POST /auth/jwt/create/
@@ -15,14 +34,16 @@ POST /auth/jwt/create/
 }
 
 
-
 POST /users/keys/
-
 {
     "public_key": ""
 }
 
 
+GET /users/keys/<id>/
+
+
+DELETE /users/keys/<id>/
 
 
 POST /notes/notes/
@@ -34,17 +55,34 @@ POST /notes/notes/
 }
 
 
+GET /notes/notes/me/
 
-PUT /notes/notes/<id>/change_encryption/
+
+GET /notes/notes/<id>/
+
+
+PUT /notes/notes/<id>/
 {
-    "body": "",
-    "encryption": {
-        "enabled": true,
-        "key": ""
-    }
+    "title": "",
+    "body": ""
 }
 
 
+PUT /notes/notes/<id>/change_encryption/
+{
+    "new_body": "",
+    "is_encrypted": true\false,
+    "keys": [
+        {
+            "user_id": "",
+            "key": ""
+        },
+        {
+            "user_id": "",
+            "key": ""
+        }
+    ]
+}
 
 
 POST http://127.0.0.1:8000/notes/notes/<id>/share/
@@ -58,3 +96,6 @@ POST http://127.0.0.1:8000/notes/notes/<id>/share/
 
 
 
+# TODO: Make `GET /notes/notes/me/` display all notes user has access to - not only owned by user
+# TOTO: Make `GET /users/keys/me/` endpoint that returns UserKey_id and the actual key
+# TODO: Make `PUT /notes/notes/<id>/change_encryption/` messages more explicit. Especially in the `"Key 1: 'key' field is required"` message should include user id instead of key number: e.g. `"key_field_missing": "'key' field for user <id> is required"`

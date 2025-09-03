@@ -37,7 +37,7 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
 
 
     def get_permissions(self):
-        """Apply different permissions based on action"""
+        """Apply different permissions based on action."""
         if self.action == 'retrieve':
             permission_classes = [CanReadNote]
         elif self.action in ['update', 'partial_update']:
@@ -55,13 +55,14 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
 
 
     def get_serializer_class(self):
+        """Based on action returns serializer."""
         if self.action in ['list', 'create']:
             return NotesSerializer # Basic info for list/create
         return NotesDetailSerializer # Detailed info for retrieve/update/delete of specific note
 
 
     def get_serializer_context(self):
-        """Return owner_id in the context in order to automatically set owner id during notes creation"""
+        """Return owner_id in the context in order to automatically set owner id during notes creation."""
         context = super().get_serializer_context()
         context['owner_id'] = self.request.user.id # Inserts owner_id into context to use it in the NotesSerializer
         context['get_user_key'] = self._get_user_key # Pass the function to serializer so that it's reusable there :>
@@ -71,11 +72,6 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
     @action(detail=False, methods=['GET'])
     def me(self, request):
         """Get all notes that current user has access to"""
-        # notes = Note.objects.filter(owner_id=request.user.id) # query for all notes which owner_id == currently logged in user
-        # # if request.method == 'GET':
-        # data = [NotesSerializer(note).data for note in notes] # serialize all those notes
-        # return Response(data, status=status.HTTP_200_OK)
-
         user_key = self._get_user_key([request.user.id])
         note_items = NoteItem.objects.filter(user_key=user_key).select_related('note')
         data = [NoteMeSerializer(note_item).data for note_item in note_items]
@@ -90,9 +86,10 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
     @action(detail=True, methods=['PUT'])
     def change_encryption(self, request, pk=None):
         """
+        Change encryption status of specific note.
         This endpoint requires encrypted symmetric keys for all users that have access to the note
         (as symmetric key is encrypted with each users' public key and storred in the NoteItem.
-        Also encrypted note's body differs from unencrypted thus new body is mandatory to store along those keys)
+        Also encrypted note's body differs from unencrypted thus new body is mandatory to store along those keys).
         """
         note = self.get_object() # Automatically get the note by pk from URL
 
@@ -103,7 +100,7 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
         is_encrypted = request.data.get('is_encrypted')
         encryption_keys = request.data.get('keys')
 
-        note.body = new_note_body.encode('utf-8') # Set new body
+        note.body = new_note_body.encode(settings.DEFAULT_ENCODING) # Set new body
         note.is_encrypted = is_encrypted # Set encrypted state
         note.save() # Save this note in db (I always forget)
 
@@ -139,7 +136,7 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
             note_item_user_id = str(note_item.user_key.user.id) # Get user id from current NoteItem
             new_symmetric_key = new_symmetric_keys_lookup.get(note_item_user_id) # Get encrypted symmtric key associated with user id; using `[]` instead of .get() method as I want to raise excption if encryption keys were NOT provided for ALL users 
             if new_symmetric_key:
-                note_item.encryption_key = new_symmetric_key.encode('utf-8')
+                note_item.encryption_key = new_symmetric_key.encode(settings.DEFAULT_ENCODING)
                 note_item.save()
 
         return Response({
@@ -195,7 +192,7 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
                 new_note_item = NoteItem.objects.create(
                     note=note,
                     user_key=user_key_target,
-                    encryption_key=encryption_key.encode('utf-8'), # Only for encrypted notes set encryption_key, empty otherwise
+                    encryption_key=encryption_key.encode(settings.DEFAULT_ENCODING), # Only for encrypted notes set encryption_key, empty otherwise
                     permission=permission
                 )
             else:
@@ -210,6 +207,7 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
 
     @action(detail=True, methods=['GET'])
     def get_public_keys(self, request, pk=None):
+        """List public keys of all users who have access to specific note"""
         note = self.get_object()
         # Get user keys for current note as UserKey entries hold the user's public keys and in order to properly encrypt notes symmetric key must be encrypted with public keys of all users who have access to the note
         note_items = NoteItem.objects.filter(note=note).select_related('user_key__user') # Here also get user that is realted to this user_key record as we want to reutrn user.id as well
@@ -222,11 +220,3 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
 
         serializer = GetPublicKeySerializer(response_data)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-# if a := True:
-#     if b := a:
-#         if c := b:
-#             if d := c:
-#                 if e := d:
-#                     print(not e)

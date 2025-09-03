@@ -1,5 +1,7 @@
 venv/
 venv
+venv-linux
+venv*
 .git
 
 __pycache__

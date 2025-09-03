@@ -1,5 +1,6 @@
-from djoser.serializers import UserSerializer as BaseUserSerializer, UserCreateSerializer as BaseUserCreateSerializer
+from django.conf import settings
 from rest_framework import serializers
+from djoser.serializers import UserSerializer as BaseUserSerializer, UserCreateSerializer as BaseUserCreateSerializer
 
 from .models import User, UserKey
 
@@ -27,7 +28,7 @@ class UserKeySerializer(serializers.ModelSerializer):
     def validate_public_key(self, value):
         if not value or value.strip() == "":
             raise serializers.ValidationError("Public key is required and cannot be empty.")
-        return value.encode('utf-8')  # Convert string to bytes for BinaryField
+        return value.encode(settings.DEFAULT_ENCODING)  # Convert string to bytes for BinaryField
 
     def create(self, validated_data):
         try:
@@ -42,6 +43,6 @@ class UserKeySerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         if instance.public_key:
             public_key_bytes = bytes(instance.public_key)
-            data['public_key'] = public_key_bytes.decode('utf-8')
+            data['public_key'] = public_key_bytes.decode(settings.DEFAULT_ENCODING)
         return data
 
