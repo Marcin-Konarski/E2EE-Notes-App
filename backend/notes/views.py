@@ -164,7 +164,7 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
                     'permission': item.permission
                 } for item in note_items
             ]
-            return Response({'shared_with': shared_users})
+            return Response({'shared_with': shared_users}, status=status.HTTP_200_OK)
 
         elif request.method == 'POST':
             # POST method - share the note
@@ -181,9 +181,9 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
             user_key_target = self._get_user_key([target_user]) # This is a UserKey instance of a user that the note will be shared to
             user_key_current = self._get_user_key([request.user.id]) # This is a UserKey of a user that shares the note
 
-            # Verify if the target user has already access to this noote
+            # Verify if the target user has already access to this note
             if NoteItem.objects.filter(note=note, user_key=user_key_target).exists():
-                return Response({'detail': f'User {target_user} has already access to this note'})
+                return Response({'detail': f'User {target_user} has already access to this note'}, status=status.HTTP_409_CONFLICT)
 
             if note.is_encrypted and not user_key_target:
                 return Response({'non_field_errors': [f'Public key required for encrypted notes. User {target_user} has to create UserKey at /users/users/keys/']}, status=status.HTTP_400_BAD_REQUEST)
@@ -220,3 +220,6 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
 
         serializer = GetPublicKeySerializer(response_data)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+# TODO: Endure only authenticated users (those that have confirmed their email address) can access those endpoints.

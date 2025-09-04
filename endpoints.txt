@@ -40,6 +40,9 @@ POST /users/keys/
 }
 
 
+GET /users/keys/me/
+
+
 GET /users/keys/<id>/
 
 

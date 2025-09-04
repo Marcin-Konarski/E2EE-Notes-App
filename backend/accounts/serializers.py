@@ -42,7 +42,11 @@ class UserKeySerializer(serializers.ModelSerializer):
     def to_representation(self, instance): # This converts binary data to string for JSON response, otherwise GET /users/keys/<id> returns memory object instead of readable key
         data = super().to_representation(instance)
         if instance.public_key:
-            public_key_bytes = bytes(instance.public_key)
-            data['public_key'] = public_key_bytes.decode(settings.DEFAULT_ENCODING)
+            try:
+                public_key_bytes = bytes(instance.public_key)
+                data['public_key'] = public_key_bytes.decode(settings.DEFAULT_ENCODING)
+            except UnicodeDecodeError:
+                import base64 # Handle non-UTF-8 binary data
+                data['public_key'] = base64.b64encode(bytes(instance.public_key)).decode('ascii')
         return data
 

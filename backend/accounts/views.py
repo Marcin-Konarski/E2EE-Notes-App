@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin
 from rest_framework.viewsets import GenericViewSet #, ModelViewSet
@@ -38,15 +39,15 @@ class UserViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destro
         user = get_object_or_404(User, id=request.user.id)
         if request.method == 'GET':
             serializer = UserSerializer(user)
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         elif request.method == 'PUT':
             serializer = UserUpdateSerializer(user, data=request.data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         elif request.method == 'DELETE':
             user.delete()
-            return Response(user.id)
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UserKeyViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet): # No list and update actions here
@@ -59,3 +60,11 @@ class UserKeyViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, Ge
         context.update({'user_id': self.request.user.id})
         return context
 
+    @action(detail=False, methods=['GET'])
+    def me(self, request):
+        user_key = get_object_or_404(UserKey, user=request.user.id)
+        serializer = UserKeySerializer(user_key).data
+        return Response(serializer, status=status.HTTP_200_OK)
+
+
+# TODO: Only users with verified email may access those endpoints - consider creatig UserKey automatically after user verifies their email address
