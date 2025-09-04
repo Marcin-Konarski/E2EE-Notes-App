@@ -1,14 +1,12 @@
 from django.shortcuts import get_object_or_404
-from django.core.mail import send_mail, mail_admins, BadHeaderError
 from rest_framework.decorators import action
 from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin
 from rest_framework.viewsets import GenericViewSet #, ModelViewSet
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from templated_mail.mail import BaseEmailMessage
-
 from .models import User, UserKey
 from .serializers import UserCreateSerializer, UserSerializer, UserUpdateSerializer, UserKeySerializer
+from .tasks import send_verification_mail
 
 
 class UserViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, GenericViewSet): # No list action here
@@ -24,8 +22,10 @@ class UserViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destro
 
 
     def create(self, request, *args, **kwargs):
-        send_verification_mail(request)
-        return super().create(request, *args, **kwargs)
+        response = super().create(request, *args, **kwargs)
+        if 201 == response.status_code: # Only if response status code is 201 send email verification mail to the specified mail in the JSON request
+            send_verification_mail.delay(request.data)
+        return (response)
 
 
     @action(detail=False, methods=['GET', 'PUT', 'DELETE'])
@@ -59,15 +59,3 @@ class UserKeyViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, Ge
         context.update({'user_id': self.request.user.id})
         return context
 
-
-def send_verification_mail(request):
-    try:
-        # send_mail('subject', 'message', 'info@arx.com', ['bob@arx.com'])
-        message = BaseEmailMessage(
-            template_name='emails/verify_account.html',
-            context={'name': request.data.get('username')}
-        )
-        message.send([request.data.get('email')]) # Requires a list of recipiants
-        print("email sent!!!")
-    except BadHeaderError as e:
-        print(e)

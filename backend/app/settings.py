@@ -16,8 +16,6 @@ from pathlib import Path
 
 load_dotenv()
 
-DEFAULT_ENCODING = 'utf-8'
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -143,6 +141,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.User'
 AUTH_USER_KEY_MODEL = 'accounts.UserKey'
 
+DEFAULT_ENCODING = 'utf-8'
 
 REST_FRAMEWORK = {
     'COERCE_DECIMAL_TO_STRING': False,
@@ -176,3 +175,13 @@ EMAIL_HOST_PASSWORD = environ['EMAIL_HOST_PASSWORD']
 DEFAULT_FROM_EMAIL = environ['DEFAULT_FROM_EMAIL']
 SERVER_EMAIL = environ['SERVER_EMAIL']
 
+
+# Celery stuff:
+# Here `1` means the name of the database - by convention should be 1
+# Moreover if celery is redis docker and celery are run in the same environment localhost is appropriate
+# For my case - since celery doesn't support Windows - runing celery in WSL then WSL address of default router is neccessary.
+CELERY_BROKER_URL = 'redis://172.17.16.1:6379/1'
+
+
+# TODO: Django CORS!!
+#!!!!!!!!!!
