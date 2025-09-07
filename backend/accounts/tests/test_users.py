@@ -7,7 +7,7 @@ from accounts.models import User, UserKey
 
 
 @pytest.mark.django_db
-class TestCreateUser:
+class TestUser:
 
     def test_id_user_created_returns_201(self, api_client):
         # AAA (Arrange, Act, Assert)
@@ -105,7 +105,7 @@ class TestCreateUser:
 
 
 @pytest.mark.django_db
-class TestCreateUserKey:
+class TestUserKey:
 
     def test_if_user_key_created_but_user_not_authorized_returns_401(self, api_client):
 
@@ -159,8 +159,14 @@ class TestCreateUserKey:
 
 
     def test_if_user_key_delete_but_user_is_not_authenticated_returns_401(self, api_client, authenticate):
-        user_key = baker.make(UserKey)
+        user = baker.make(User)
+        authenticate(api_client, user)
+        user_key = baker.make(UserKey, user=user)
 
-        response = ''
+        response = api_client.delete(f'/users/keys/{user_key.id}/')
+
+        assert status.HTTP_204_NO_CONTENT == response.status_code
+        with pytest.raises(UserKey.DoesNotExist):
+            UserKey.objects.get(id=user_key.id)
 
 

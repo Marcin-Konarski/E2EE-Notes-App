@@ -53,7 +53,7 @@ POST /notes/notes/
 {
     "title": "",
     "body": "",
-    "is_encrypted": true,
+    "is_encrypted": true/false,
     "encryption_key": ""
 }
 

@@ -5,6 +5,9 @@ venv*
 .git
 
 __pycache__
+.pytest_cache/
+backend/.pytest_cache/
+.pytest_cache
 
 .env
 .env/

@@ -167,14 +167,14 @@ class ChangeEncryptionSerializer(serializers.Serializer):
             raise serializers.ValidationError(errors)
         return value
 
-    def validate(self, data):
-        is_encrypted = data.get('is_encrypted')
-        keys = data.get('keys', [])
+    # def validate(self, data):
+    #     is_encrypted = data.get('is_encrypted')
+    #     keys = data.get('keys', [])
 
-        if is_encrypted and not keys:
-            raise serializers.ValidationError({'keys': 'Encryption keys are required when is_encrypted=true'})
+    #     if is_encrypted and not keys:
+    #         raise serializers.ValidationError({'keys': 'Encryption keys are required when is_encrypted=true'})
 
-        return data
+    #     return data
 
 
 class ShareNoteSerializer(serializers.Serializer):

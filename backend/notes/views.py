@@ -160,6 +160,7 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
             note_items = NoteItem.objects.filter(note=note).select_related('user_key__user')
             shared_users = [
                 {
+                    'user_id': item.user_key.user.id,
                     'user': item.user_key.user.username,
                     'permission': item.permission
                 } for item in note_items
