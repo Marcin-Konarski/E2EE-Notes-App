@@ -1,0 +1,60 @@
+x-django-api: &django-api
+  build:
+    context: ./backend
+    dockerfile: Dockerfile
+  environment:
+    HOST: postgres
+    PORT: 5432
+    DB_NAME: arx_db
+    USER: arx_user
+    PASSWORD: quujmsit
+    CELERY_BROKER_URL: redis://redis:6379/1
+  depends_on:
+    - postgres
+    - redis
+
+services:
+
+  # PostgreSQL database
+  postgres:
+    image: postgres:17.6-bookworm
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: arx_db
+      POSTGRES_USER: arx_user
+      POSTGRES_PASSWORD: quujmsit
+    volumes:
+      - pgdata:/var/lib/postgresql/data/
+
+  # Redis as message broker
+  redis:
+    image: redis:8.2.1-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  # Django backend
+  backend:
+    <<: *django-api
+    container_name: backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app/                             # Original was: - .:/usr/src/app/
+
+  # Celery for tasks
+  celery:
+    <<: *django-api
+    container_name: celery
+    command: celery -A app worker --loglevel=info
+
+  # React frontend
+  # frontend:
+
+# Define a named volume for PostgreSQL data storage
+volumes:
+  pgdata:
