@@ -8,7 +8,7 @@ x-django-api: &django-api
     DB_NAME: arx_db
     USER: arx_user
     PASSWORD: quujmsit
-    CELERY_BROKER_URL: redis://redis:6379/1
+    CELERY_BROKER_URL: redis://redis:6379/1     # TODO: ADD ENVIRONMENT VARIABLES FOR SENDING EMAILS
   depends_on:
     - postgres
     - redis
@@ -44,7 +44,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/app/                             # Original was: - .:/usr/src/app/
+      - ./backend:/app/
 
   # Celery for tasks
   celery:
