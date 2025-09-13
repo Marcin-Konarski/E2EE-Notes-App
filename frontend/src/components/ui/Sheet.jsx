@@ -4,34 +4,23 @@ import { XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-function Sheet({
-  ...props
-}) {
+function Sheet({ ...props }) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />;
 }
 
-function SheetTrigger({
-  ...props
-}) {
+function SheetTrigger({ ...props }) {
   return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />;
 }
 
-function SheetClose({
-  ...props
-}) {
+function SheetClose({ ...props }) {
   return <SheetPrimitive.Close data-slot="sheet-close" {...props} />;
 }
 
-function SheetPortal({
-  ...props
-}) {
+function SheetPortal({ ...props }) {
   return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} />;
 }
 
-function SheetOverlay({
-  className,
-  ...props
-}) {
+function SheetOverlay({ className, ...props }) {
   return (
     <SheetPrimitive.Overlay
       data-slot="sheet-overlay"
@@ -43,12 +32,7 @@ function SheetOverlay({
   );
 }
 
-function SheetContent({
-  className,
-  children,
-  side = "right",
-  ...props
-}) {
+function SheetContent({ className, children, side = "right", ...props }) {
   return (
     <SheetPortal>
       <SheetOverlay />
@@ -78,10 +62,7 @@ function SheetContent({
   );
 }
 
-function SheetHeader({
-  className,
-  ...props
-}) {
+function SheetHeader({ className, ...props }) {
   return (
     <div
       data-slot="sheet-header"
@@ -90,10 +71,7 @@ function SheetHeader({
   );
 }
 
-function SheetFooter({
-  className,
-  ...props
-}) {
+function SheetFooter({ className, ...props }) {
   return (
     <div
       data-slot="sheet-footer"
@@ -102,10 +80,7 @@ function SheetFooter({
   );
 }
 
-function SheetTitle({
-  className,
-  ...props
-}) {
+function SheetTitle({ className, ...props }) {
   return (
     <SheetPrimitive.Title
       data-slot="sheet-title"
@@ -114,10 +89,7 @@ function SheetTitle({
   );
 }
 
-function SheetDescription({
-  className,
-  ...props
-}) {
+function SheetDescription({ className, ...props }) {
   return (
     <SheetPrimitive.Description
       data-slot="sheet-description"

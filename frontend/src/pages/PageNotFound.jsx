@@ -4,7 +4,7 @@ import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router-d
 import { Button } from '@/components/ui/Button';
 
 
-function PageNotFound() {
+const PageNotFound = () => {
     const error = useRouteError();
     const navigate = useNavigate('/');
 

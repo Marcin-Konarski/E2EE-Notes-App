@@ -3,14 +3,16 @@ import NavBar from '@/components/NavBar'
 import { Outlet } from 'react-router-dom'
 
 
-function Layout() {
+const Layout = () => {
 
     return (
         <ThemeProvider defaultTheme='dark' storageKey='ui-theme'>
-            <NavBar />
-            <div className='flex justify-center items-center text-2xl min-h-screen'>
-                <div id='main'>
-                    <Outlet />
+            <div className='h-screen flex flex-col'>
+                <NavBar />
+                <div className='flex-1 flex justify-center items-center'>
+                    <div id='main'>
+                        <Outlet />
+                    </div>
                 </div>
             </div>
         </ThemeProvider>
