@@ -1,5 +1,5 @@
 import { NavBarComponent } from '@/components/ui/NavBarComponent'
-import { Book, Menu, Sunset, Trees, Zap, FilePlus} from "lucide-react";
+import { Book, Sunset, Trees, Key, FilePlus} from "lucide-react";
 import ArxLogo from '@/assets/logo.svg'
 
 const NavBar = () => {
@@ -41,7 +41,7 @@ const NavBar = () => {
                 {
                 title: "My keys",
                 description: "View your private key",
-                icon: <Zap className="size-5 shrink-0" />,
+                icon: <Key className="size-5 shrink-0 mt-1" />,
                 url: "/keys",
                 },
                 {
