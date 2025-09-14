@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 
 const defaultSchema = z.string()
-    .nonempty({message: 'This field is required.'})
+    .min(1, {message: 'This field is required.'})
 
 const usernameSchema = defaultSchema
     .min(3, {message: 'Username has to be at least 3 characters long.'})
@@ -33,7 +33,7 @@ const RegisterFormSchema = z.object({
     username: usernameSchema,
     email: emailSchema,
     password: passwordSchema,
-    confirm: z.string().nonempty({ message: "Passwords do not match." }) // This is just so for the estetics so that if all fields are empty the confirm password also displays error - in this way it simply looks better
+    confirm: z.string().min(1, { message: "This field is required." }) // This is just so for the estetics so that if all fields are empty the confirm password also displays error - in this way it simply looks better
 }).refine((data) => data.password === data.confirm, {
     message: 'Passwords do not match.',
     path: ["confirm"]
@@ -41,8 +41,8 @@ const RegisterFormSchema = z.object({
 
 
 const LoginFormSchema = z.object({
-    username: z.string().nonempty({message: 'This field is required.'}),
-    password: z.string().nonempty({message: 'This field is required.'}),
+    username: z.string().min(1, {message: 'This field is required.'}),
+    password: z.string().min(1, {message: 'This field is required.'}),
 });
 
 

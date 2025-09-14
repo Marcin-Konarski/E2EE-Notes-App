@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { PasswordInput } from '@/components/ui/PasswordInput'
-import { Form, FormField, FormItem, FormControl, FormMessage } from '@/components/ui/form'
 import { Link } from 'react-router-dom'
+import { PasswordInput } from '@/components/ui/PasswordInput'
+import { Form, FormField, FormItem, FormControl, FormMessage } from '@/components/ui/Form'
 
 
 const LoginRegisterForm = ({ title, redirect, inputs, form, button, reset, onSubmit }) => {
