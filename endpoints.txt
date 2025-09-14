@@ -19,8 +19,8 @@ GET /users/users/me/
 
 PUT /users/users/me/
 {
-    "username": "miquelbrydan",
-    "email": "miquel.brydan@malldrops.com",
+    "username": "",
+    "email": "",
 }
 
 

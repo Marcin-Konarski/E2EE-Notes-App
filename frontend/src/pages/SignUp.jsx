@@ -1,8 +1,9 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import axios from 'axios';
 
-import LoginRegisterForm from '@/components/LoginRegisterForm'
-import { RegisterFormSchema } from '@/lib/ValidationSchema'
+import LoginRegisterForm from '@/components/LoginRegisterForm';
+import { RegisterFormSchema } from '@/lib/ValidationSchema';
 
 const SignUp = () => {
 
@@ -17,7 +18,9 @@ const SignUp = () => {
   });
 
   const onSubmit = (data) => {
+    delete data.confirm
     console.log(data)
+    axios.post('http://127.0.0.1:8000/users/users/', data).then(res => console.log('works:' + res)).catch(error => console.log('error:' + error))
   }
 
   const redirect = {

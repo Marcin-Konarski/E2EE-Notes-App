@@ -43,6 +43,7 @@ services:
     container_name: backend
     ports:
       - "8000:8000"
+    entrypoint: ["/app/entrypoint.sh"] # This is a script that runs database migrations
     volumes:
       - ./backend:/app/
 
@@ -64,7 +65,13 @@ services:
       - ./frontend:/app/
       - frontend_node_modules:/app/node_modules
 
-# Define a named volume for PostgreSQL data storage
 volumes:
   pgdata:
   frontend_node_modules:
+
+
+# Mouting a volume ./frontend:/app overwrites everything in app, including /app/node_modules which causes werid issue caused by copied node_modules and package-lock.json
+# By mounting a named volume at /app/node_modules we "protect" that folder from being overwritten in container by host
+#Also .dockerignore requires those `node_modules` and `package-lock.json` to ensure they are not copied to the container but freshly installed
+# Now, node_modules is built and used inside the container, with the correct Linux binaries
+# Thanks to this solution code is hot-reloaded from host and dependencies are always correct for the container and nothing breaks
