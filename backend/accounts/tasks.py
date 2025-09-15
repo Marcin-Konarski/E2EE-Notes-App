@@ -1,17 +1,25 @@
 from django.core.mail import BadHeaderError
-
 from templated_mail.mail import BaseEmailMessage
 from celery import shared_task
 
+from .models import User
+from .account_activation import create_user_account_activation_link
+
 
 @shared_task
-def send_verification_mail(data):
+def send_verification_mail(user_id, username, email):
+    link = create_user_account_activation_link(user_id) # Create a link with account's email verification link
     try:
         # send_mail('subject', 'message', 'info@arx.com', ['bob@arx.com'])
         message = BaseEmailMessage(
             template_name='emails/verify_account.html',
-            context={'name': data.get('username')}
+            context={
+                'logo': 'https://imgur.com/a/mqL4JFo',
+                'username': username,
+                'link': link
+            }
         )
-        message.send([data.get('email')]) # Requires a list of recipiants
+        message.send([email]) # Requires a list of recipiants
+        print('email sent successfuly')
     except BadHeaderError as e:
         print(e)

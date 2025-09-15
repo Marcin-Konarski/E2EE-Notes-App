@@ -1,11 +1,20 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
 import LoginRegisterForm from '@/components/LoginRegisterForm';
 import { RegisterFormSchema } from '@/lib/ValidationSchema';
 
 const SignUp = () => {
+
+  const createAccount = (data) => axios.post('http://127.0.0.1:8000/users/users/', data).then(res => res.data)
+
+  const { data, error, isLoading } = useQuery({
+    queryKey: ['authentication'],
+    queryFn: createAccount
+  })
+
 
   const form = useForm({
     resolver: zodResolver(RegisterFormSchema),

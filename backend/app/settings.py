@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'rest_framework', # pip install djangorestframework
     'django_filters', # pip install django-filter
     'debug_toolbar', # pip install django-debug-toolbar
-    'djoser',
+    'djoser', # pip install djoser
     'accounts',
     'notes',
 ]
@@ -84,8 +84,10 @@ INTERNAL_IPS = [
     '127.0.0.1',
 ]
 
+FRONTEND_URL = 'http://localhost:8080'
+
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:8080',
+    FRONTEND_URL,
     'http://127.0.0.1:8080',
 ]
 
@@ -164,6 +166,9 @@ DJOSER = {
     'TOKEN_MODEL': None, # Disable token based authentication
 }
 
+SALT = environ['SALT']
+ACCOUNT_ACTIVATION_TIME = 60*60*24 # One day in seconds
+
 from datetime import timedelta #! remove this as well
 
 SIMPLE_JWT = {# This comes from the JWT engine for djoser authentication
@@ -187,8 +192,5 @@ SERVER_EMAIL = environ['SERVER_EMAIL']
 # Here `1` means the name of the database - by convention should be 1
 # Moreover if celery is redis docker and celery are run in the same environment localhost is appropriate
 # For my case - since celery doesn't support Windows - runing celery in WSL then WSL address of default router is neccessary.
-CELERY_BROKER_URL = 'redis://172.17.16.1:6379/1'
+CELERY_BROKER_URL = environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/1')
 
-
-# TODO: Django CORS!!
-#!!!!!!!!!!

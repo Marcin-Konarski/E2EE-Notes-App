@@ -9,6 +9,7 @@ x-django-api: &django-api
     USER: arx_user
     PASSWORD: quujmsit
     CELERY_BROKER_URL: redis://redis:6379/1     # TODO: ADD ENVIRONMENT VARIABLES FOR SENDING EMAILS
+    SALT: alamakota
   depends_on:
     - postgres
     - redis
@@ -52,6 +53,8 @@ services:
     <<: *django-api
     container_name: celery
     command: celery -A app worker --loglevel=info
+    volumes:
+      - ./backend:/app/ #! After emails are working perfectly delete this volume entirely from celery. It will be enough to just build it
 
   # React frontend
   frontend:

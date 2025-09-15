@@ -50,3 +50,33 @@ class UserKeySerializer(serializers.ModelSerializer):
                 data['public_key'] = base64.b64encode(bytes(instance.public_key)).decode('ascii')
         return data
 
+class UserActivationSerializer(serializers.Serializer):
+    activation_key = serializers.CharField(required=True, allow_blank=False)
+
+    def validate_activation_key(self, value):
+        if not value or value.strip() == "":
+            raise serializers.ValidationError("Activation key is required and cannot be empty.")
+        return value.strip()
+
+class ResendActivationEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    username = serializers.CharField(required=True, allow_blank=False)
+    
+    def validate_email(self, value):
+        if not value:
+            raise serializers.ValidationError("Email is required.")
+        return value
+    
+    def validate_username(self, value):
+        if not value or value.strip() == "":
+            raise serializers.ValidationError("Username is required and cannot be empty.")
+        return value.strip()
+    
+    def validate(self, attrs):
+        """Check if user exists with provided email and username"""
+        try:
+            user = User.objects.get(email=attrs['email'], username=attrs['username'])
+            attrs['user'] = user  # Store user for later use
+        except User.DoesNotExist:
+            raise serializers.ValidationError({'non_field_errors': ['No user found with this email and username combination.']})
+        return attrs

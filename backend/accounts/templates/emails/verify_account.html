@@ -1,8 +1,65 @@
-{% block subject %} Subject {% endblock %}
-
+{% block subject %}
+Verify your email
+{% endblock %}
 
 {% block html_body %}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Email Verification</title>
+  </head>
+  <body style="margin: 0; padding: 0; background-color: #121212; font-family: Arial, sans-serif; color: #ffffff;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: auto; background-color: #1a1a1a; border-radius: 8px;">
+      <tr>
+        <td style="padding: 40px 30px; text-align: center;">
+          <!-- Logo -->
+          <img src="{{logo}}"" alt="Arx Notes" style="margin-bottom: 30px;" /> 
 
-Hello {{ name }}
+          <!-- Greeting -->
+          <h1 style="font-size: 24px; font-weight: bold; margin: 0 0 20px;">Hello {{username}}</h1>
 
+          <!-- Message -->
+          <p style="font-size: 16px; line-height: 1.6; margin: 0 0 30px;">
+            Thanks for creating an account in <strong>Arx Notes</strong>. Please confirm your email address by clicking the button below. 
+            This step is necessary in order to set up encryption for your notes.
+          </p>
+
+          <!-- Button -->
+          <p style="margin: 0 0 30px;">
+            <a href="{{link}}"
+                style="background-color: #2196F3; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">
+              Verify Email
+            </a>
+          </p>
+
+          <!-- Button -->
+          <p style="margin: 0 0 30px;">
+            <button href="{{link}}"
+                style="background-color: #2196F3; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">
+              Verify Email
+            </button>
+          </p>
+
+          <!-- Backup link -->
+          <p style="font-size: 14px; line-height: 1.6; margin: 0 0 30px; color: #cccccc;">
+            If the button doesn’t work, copy and paste the following link into your browser:<br>
+            <span style="color: #2196F3; word-break: break-all;">{{link}}</span>
+          </p>
+
+          <!-- Footer -->
+          <hr style="border: none; border-top: 1px solid #333333; margin: 30px 0;">
+          <p style="font-size: 14px; color: #999999; margin: 0 0 10px;">
+            ❤️ Arx Notes
+          </p>
+          <p style="font-size: 12px; color: #666666; margin: 0;">
+            <a href="https://arxnotes.mk0x.com" style="color: #666666; text-decoration: none;">
+              https://arxnotes.mk0x.com
+            </a>
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
 {% endblock %}
