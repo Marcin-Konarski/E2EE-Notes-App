@@ -1,18 +1,27 @@
 from django.shortcuts import get_object_or_404
+from django.conf import settings
 from rest_framework import status
+from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin
-from rest_framework.viewsets import GenericViewSet #, ModelViewSet
+from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenVerifyView, TokenRefreshView
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .models import User, UserKey
-from .serializers import UserCreateSerializer, UserSerializer, UserUpdateSerializer, UserKeySerializer, UserActivationSerializer, ResendActivationEmailSerializer
+from .serializers import UserCreateSerializer, UserSerializer, UserUpdateSerializer, UserKeySerializer, \
+                        UserActivationSerializer, ResendActivationEmailSerializer
 from .account_activation import verify_activation_key
 from .tasks import send_verification_mail
+from .permissions import HasEmailVerifiedPermission
 
 
-class UserViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, GenericViewSet): # No list action here
+# class UserViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, GenericViewSet): # No list action here
+class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserCreateSerializer
     # permission_classes = [AllowAny]
@@ -71,12 +80,18 @@ class UserKeyViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, Ge
         serializer = UserKeySerializer(user_key).data
         return Response(serializer, status=status.HTTP_200_OK)
 
-
-class UserActivationViewSet(CreateModelMixin, GenericViewSet):
+class APIViewBase(APIView):
     permission_classes = [AllowAny]
+    serializer_class = ''
+
+    def get_serializer(self, *args, **kwargs) -> serializers.Serializer:
+        """Manually define get_serializer for APIView"""
+        return self.serializer_class(*args, **kwargs)
+
+class UserActivationViewSet(APIViewBase):
     serializer_class = UserActivationSerializer
 
-    def create(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         """Verify user's email using activation key"""
 
         serializer = self.get_serializer(data=request.data)
@@ -101,11 +116,11 @@ class UserActivationViewSet(CreateModelMixin, GenericViewSet):
         except User.DoesNotExist:
             return Response({'status': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
-class ResendActivationEmailViewSet(CreateModelMixin, GenericViewSet):
-    permission_classes = [AllowAny]
+
+class ResendActivationEmailViewSet(APIViewBase):
     serializer_class = ResendActivationEmailSerializer
 
-    def create(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         """Resend email to user with new activation key"""
 
         serializer = self.get_serializer(data=request.data)
@@ -121,4 +136,32 @@ class ResendActivationEmailViewSet(CreateModelMixin, GenericViewSet):
         return Response({'message': 'Email sent successfuly'}, status=status.HTTP_200_OK)
 
 
-# TODO: Only users with verified email may access those endpoints - consider creatig UserKey automatically after user verifies their email address
+def get_token_for_user(user):
+    token = RefreshToken.for_user(user)
+
+    return {
+        'refresh': str(token),
+        'access':  str(token.access_token),
+    }
+
+
+class CreateJWT(TokenObtainPairView):
+    serializer_class = TokenObtainPairSerializer
+    permission_classes = [HasEmailVerifiedPermission]
+
+    def post(self, request, *args, **kwargs):
+        response =  super().post(request, *args, **kwargs) # Obtain the refresh and access tokens via TokenObtainPairSerializer
+        refresh_token = response.data['refresh'] # Get refresh token from respose data (body)
+        del response.data['refresh'] # Remove refresh token from response data (body)
+
+        # Set refresh token in HTTP-only cookie (not body) - reportedly more secure than storing in localstore in frontned - immune to js thus save from XSS - I think at least)
+        if refresh_token:
+            response.set_cookie(key='refresh_token', value=refresh_token, max_age=settings.REFRESH_TOKEN_LIFETIME,
+                                secure=settings.SESSION_COOKIE_SECURE, httponly=True, samesite=settings.SESSION_COOKIE_SAMESITE)
+
+        return response
+
+class RefreshJWT(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+        request.data['refresh'] = request.COOKIES.get('refresh_token') # Get the data from http-only cookie and pass into default endpoint in body
+        return super().post(request, *args, **kwargs) # Return new access token

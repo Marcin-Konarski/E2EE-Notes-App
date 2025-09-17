@@ -27,10 +27,14 @@ PUT /users/users/me/
 DELETE /users/users/me/
 
 
-POST /auth/jwt/create/
+POST /users/jwt/create/
 {
     "username": "",
     "password": ""
+}
+
+PUT /users/jwt/refresh/
+{
 }
 
 
@@ -44,10 +48,11 @@ GET /users/keys/me/
 
 
 GET /users/keys/<id>/
+# TODO: This endpoint is not secure as it allows everyone to view everyone's key. Ensure that only owner can see their keys or delete this endpoint at all
 
 
 DELETE /users/keys/<id>/
-
+# TODO: This endpoint is not secure as it allows everyone to view everyone's key. Ensure that only owner can delete their keys
 
 POST /notes/notes/
 {

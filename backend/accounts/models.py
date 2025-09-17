@@ -58,7 +58,7 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
         self.email = self.__class__.objects.normalize_email(self.email)
 
     def get_full_name(self):
-        """This method is kept for the compatibility with other django functionalities and apparently djoser also calls this method."""
+        """This method is kept for the compatibility with other django functionalities."""
         return self.username.strip()
 
     def get_short_name(self):

@@ -1,19 +1,26 @@
 from django.conf import settings
 from rest_framework import serializers
-from djoser.serializers import UserSerializer as BaseUserSerializer, UserCreateSerializer as BaseUserCreateSerializer
+# from djoser.serializers import UserSerializer as BaseUserSerializer, UserCreateSerializer as BaseUserCreateSerializer
 
 from .models import User, UserKey
 
-class UserCreateSerializer(BaseUserCreateSerializer):
-    class Meta(BaseUserCreateSerializer.Meta):
+class UserCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
         fields = ['id', 'username', 'email', 'password']
+        extra_kwargs = {'password': {'write_only': True}}
+    
+    def create(self, validated_data):
+        return User.objects.create_user(**validated_data)
 
-class UserSerializer(BaseUserSerializer):
-    class Meta(BaseUserSerializer.Meta):
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
         fields = ['id', 'username', 'email']
 
-class UserUpdateSerializer(BaseUserSerializer):
-    class Meta(BaseUserSerializer.Meta):
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
         fields = ['id', 'username', 'email']
         read_only_fields = []  # Remove read_only restriction on username in order to update all provided fields
 
@@ -61,17 +68,17 @@ class UserActivationSerializer(serializers.Serializer):
 class ResendActivationEmailSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
     username = serializers.CharField(required=True, allow_blank=False)
-    
+
     def validate_email(self, value):
-        if not value:
+        if not value or value.strip() == "":
             raise serializers.ValidationError("Email is required.")
         return value
-    
+
     def validate_username(self, value):
         if not value or value.strip() == "":
-            raise serializers.ValidationError("Username is required and cannot be empty.")
+            raise serializers.ValidationError("Username is required.")
         return value.strip()
-    
+
     def validate(self, attrs):
         """Check if user exists with provided email and username"""
         try:
@@ -80,3 +87,25 @@ class ResendActivationEmailSerializer(serializers.Serializer):
         except User.DoesNotExist:
             raise serializers.ValidationError({'non_field_errors': ['No user found with this email and username combination.']})
         return attrs
+
+# class AccessTokenSerializer(serializers.Serializer):
+#     access_token = serializers.CharField(required=True, allow_blank=False)
+
+#     def validate_access_token(self, value):
+#         if not value or value.strip() == "":
+#             raise serializers.ValidationError("access_token is required.")
+#         return value.strip()
+
+# class CredentialsSerializer(serializers.Serializer):
+#     username = serializers.CharField(required=True, allow_blank=False)
+#     password = serializers.CharField(required=True, allow_blank=False)
+
+#     def validate_password(self, value):
+#         if not value or value.strip() == "":
+#             raise serializers.ValidationError("Email is required.")
+#         return value
+
+#     def validate_username(self, value):
+#         if not value or value.strip() == "":
+#             raise serializers.ValidationError("Username is required.")
+#         return value.strip()

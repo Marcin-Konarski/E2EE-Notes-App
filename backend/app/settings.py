@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from dotenv import load_dotenv
 from os import environ
 from pathlib import Path
+from datetime import timedelta
 
 load_dotenv()
 
@@ -44,7 +45,7 @@ INSTALLED_APPS = [
     'rest_framework', # pip install djangorestframework
     'django_filters', # pip install django-filter
     'debug_toolbar', # pip install django-debug-toolbar
-    'djoser', # pip install djoser
+    # 'djoser', # pip install djoser
     'accounts',
     'notes',
 ]
@@ -155,25 +156,31 @@ DEFAULT_ENCODING = 'utf-8'
 REST_FRAMEWORK = {
     'COERCE_DECIMAL_TO_STRING': False,
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication', # This comes from the JWT engine for djoser authentication
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated'
     ],
 }
 
-DJOSER = {
-    'TOKEN_MODEL': None, # Disable token based authentication
-}
+# DJOSER = {
+#     'TOKEN_MODEL': None, # Disable token based authentication
+# }
 
-SALT = environ['SALT']
-ACCOUNT_ACTIVATION_TIME = 60*60*24 # One day in seconds
+ACCOUNT_ACTIVATION_TIME = 60*60*24 # One day in seconds - this setting defines how long user has to click a link in the verification email upon registerning
 
-from datetime import timedelta #! remove this as well
 
-SIMPLE_JWT = {# This comes from the JWT engine for djoser authentication
-   'AUTH_HEADER_TYPES': ('Bearer', 'JWT'),
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1), #! In the real app leave this as default!! Current change is just for learning django
+SESSION_COOKIE_SECURE = True # Enable secure cookies
+CSRF_COOKIE_SECURE = True
+
+SESSION_COOKIE_SAMESITE = 'Lax' # SameSite settings for cookies
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+REFRESH_TOKEN_LIFETIME = timedelta(days=1)
+
+SIMPLE_JWT = {
+   "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": REFRESH_TOKEN_LIFETIME,
 }
 
 # Email related stuff:

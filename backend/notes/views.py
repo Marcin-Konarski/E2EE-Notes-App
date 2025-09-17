@@ -100,6 +100,9 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
         is_encrypted = request.data.get('is_encrypted')
         encryption_keys = request.data.get('keys')
 
+        if is_encrypted and not encryption_keys:
+            return Response({'encryption_keys': ['This field is required if is_encrypted is true']})
+
         note.body = new_note_body.encode(settings.DEFAULT_ENCODING) # Set new body
         note.is_encrypted = is_encrypted # Set encrypted state
         note.save() # Save this note in db (I always forget)

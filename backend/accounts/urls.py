@@ -1,3 +1,4 @@
+from django.urls import path
 from rest_framework.routers import DefaultRouter
 from . import views
 
@@ -5,8 +6,10 @@ from . import views
 router = DefaultRouter()
 router.register('users', views.UserViewSet)
 router.register('keys', views.UserKeyViewSet)
-router.register('activate', views.UserActivationViewSet, basename='activate')
-router.register('resend-email', views.ResendActivationEmailViewSet, basename='resend_email')
 
-
-urlpatterns = router.urls
+urlpatterns = [
+    path('activate/', views.UserActivationViewSet.as_view(), name='activate'),
+    path('resend-email/', views.ResendActivationEmailViewSet.as_view(), name='resend_email'),
+    path('jwt/create/', views.CreateJWT.as_view(), name='jwt-create'),
+    path('jwt/refresh/', views.RefreshJWT.as_view(), name='jwt-refresh')
+] + router.urls
