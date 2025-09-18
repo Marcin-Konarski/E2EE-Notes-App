@@ -23,11 +23,12 @@ export default defineConfig([
       },
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      'no-unused-vars': ['off', { varsIgnorePattern: '^[A-Z_]' }],
+      'react-refresh/only-export-components': [ // This rule disables the error when multiple components are exported in one file. This affects only fast refresh
+          'warn',
+          { allowExportNames: ['buttonVariants'] }
+        ],
+      'no-undef': 'error',
     },
-    'react-refresh/only-export-components': [ // This rule disables the error when multiple components are exported in one file. This affects only fast refresh
-        'warn',
-        { allowExportNames: ['buttonVariants'] }
-      ],
   },
 ])

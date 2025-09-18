@@ -1,6 +1,5 @@
 from django.conf import settings
 from rest_framework import serializers
-# from djoser.serializers import UserSerializer as BaseUserSerializer, UserCreateSerializer as BaseUserCreateSerializer
 
 from .models import User, UserKey
 

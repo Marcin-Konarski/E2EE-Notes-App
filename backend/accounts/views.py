@@ -136,15 +136,6 @@ class ResendActivationEmailViewSet(APIViewBase):
         return Response({'message': 'Email sent successfuly'}, status=status.HTTP_200_OK)
 
 
-def get_token_for_user(user):
-    token = RefreshToken.for_user(user)
-
-    return {
-        'refresh': str(token),
-        'access':  str(token.access_token),
-    }
-
-
 class CreateJWT(TokenObtainPairView):
     serializer_class = TokenObtainPairSerializer
     permission_classes = [HasEmailVerifiedPermission]

@@ -7,6 +7,7 @@ import Login from '@/pages/Login'
 import SignUp from '@/pages/SignUp'
 import PageNotFound from "@/pages/PageNotFound";
 import Layout from "@/pages/Layout";
+import EmailVerification from "./pages/EmailVerification";
 
 
 const router = createBrowserRouter([
@@ -21,6 +22,7 @@ const router = createBrowserRouter([
         { path: "settings", Component: Settings },
         { path: "login", Component: Login },
         { path: "signup", Component: SignUp },
+        { path: "verify/:id", Component: EmailVerification},
     ]
   },
 ]);

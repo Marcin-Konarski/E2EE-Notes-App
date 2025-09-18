@@ -23,7 +23,7 @@ def create_user_account_activation_link(user_id):
     """Create a link with signed activation key that redirects to frontend"""
     activation_key = generate_activation_key(user_id)
     print(f'{activation_key=}')
-    return f'{settings.FRONTEND_URL}/verify-email/{activation_key}'
+    return f'{settings.FRONTEND_URL}/verify/{activation_key}'
 
 
 

@@ -1,14 +1,15 @@
+import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import axios from 'axios';
 
-import LoginRegisterForm from '@/components/LoginRegisterForm';
 import { RegisterFormSchema } from '@/lib/ValidationSchema';
+import LoginRegisterForm from '@/components/LoginRegisterForm';
+import useRegister from '@/hooks/useRegister';
+
+
 
 const SignUp = () => {
-
-  const createAccount = (data) => axios.post('http://127.0.0.1:8000/users/users/', data).then(res => res.data)
-
+  const { register, user, setUser, error } = useRegister();
 
   const form = useForm({
     resolver: zodResolver(RegisterFormSchema),
@@ -20,12 +21,17 @@ const SignUp = () => {
     }
   });
 
-  const onSubmit = (data) => {
-    delete data.confirm
-    console.log(data)
-    axios.post('http://127.0.0.1:8000/users/users/', data).then(res => console.log('works:' + res)).catch(error => console.log('error:' + error))
+  useEffect(() => { // UseEffect to accurately display current user and error
+    console.log(error);
+    console.log(user);
+  }, [user, error])
+
+  const onSubmit = (data) => { // { data.email, data.username, data.password, data.confirm }
+    const {confirm, ...registerData} = data; // Do not send password confirmation as backend doesn't require it
+    register(registerData); // register function defined in custom hook
   }
 
+  // Define fields, labes and values etc. ( - building blocks) for LoginRegisterForm
   const redirect = {
     message: 'Already have an account?',
     text: 'Log in',

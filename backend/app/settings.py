@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'rest_framework', # pip install djangorestframework
     'django_filters', # pip install django-filter
     'debug_toolbar', # pip install django-debug-toolbar
-    # 'djoser', # pip install djoser
     'accounts',
     'notes',
 ]
@@ -163,9 +162,6 @@ REST_FRAMEWORK = {
     ],
 }
 
-# DJOSER = {
-#     'TOKEN_MODEL': None, # Disable token based authentication
-# }
 
 ACCOUNT_ACTIVATION_TIME = 60*60*24 # One day in seconds - this setting defines how long user has to click a link in the verification email upon registerning
 

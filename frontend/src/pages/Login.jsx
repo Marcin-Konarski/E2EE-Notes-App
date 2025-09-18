@@ -1,10 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 
-import LoginRegisterForm from '@/components/LoginRegisterForm'
 import { LoginFormSchema } from '@/lib/ValidationSchema'
+import LoginRegisterForm from '@/components/LoginRegisterForm'
 
 const Login = () => {
+
+  const onSubmit = (data) => {
+    console.log(data)
+    console.log(location)
+    console.log(params)
+  }
 
   const form = useForm({
     resolver: zodResolver(LoginFormSchema),
@@ -13,10 +19,6 @@ const Login = () => {
       password: ''
     }
   });
-
-  const onSubmit = (data) => {
-    console.log(data)
-  }
 
   const redirect = {
     message: 'Don\'t have an account?',
