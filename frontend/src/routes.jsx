@@ -1,13 +1,13 @@
 import { createBrowserRouter } from "react-router";
+import Layout from "@/pages/Layout";
 import Home from '@/pages/Home'
 import Notes from '@/pages/Notes'
 import Keys from '@/pages/Keys'
 import Settings from '@/pages/Settings'
 import Login from '@/pages/Login'
-import SignUp from '@/pages/SignUp'
-import PageNotFound from "@/pages/PageNotFound";
-import Layout from "@/pages/Layout";
+import Register from "@/pages/Register";
 import EmailVerification from "./pages/EmailVerification";
+import PageNotFound from "@/pages/PageNotFound";
 
 
 const router = createBrowserRouter([
@@ -21,8 +21,8 @@ const router = createBrowserRouter([
         { path: "keys", Component: Keys },
         { path: "settings", Component: Settings },
         { path: "login", Component: Login },
-        { path: "signup", Component: SignUp },
-        { path: "verify/:id", Component: EmailVerification},
+        { path: "signup", Component: Register },
+        { path: "verify/:activationKey", Component: EmailVerification},
     ]
   },
 ]);

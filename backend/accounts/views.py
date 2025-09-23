@@ -34,13 +34,22 @@ class UserViewSet(ModelViewSet):
 
 
     def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-        if 201 == response.status_code: # Only if response status code is 201 send email verification mail to the specified mail in the JSON request
-            user_id = response.data.get('id')
-            username = response.data.get('username')
-            email = response.data.get('email')
-            send_verification_mail.delay(user_id, username, email)
-        return (response)
+        try:
+            response = super().create(request, *args, **kwargs)
+            if 201 == response.status_code: # Only if response status code is 201 send email verification mail to the specified mail in the JSON request
+                user_id = response.data.get('id')
+                username = response.data.get('username')
+                email = response.data.get('email')
+                send_verification_mail.delay(user_id, username, email)
+            return (response)
+        except Exception as e: # In order to return the message of what went wrong with the account creation:
+            serializer = self.get_serializer(data=request.data)
+            if not serializer.is_valid():
+                for field, errors in serializer.errors.items():
+                    error_messages = [str(error).strip('.') for error in errors]
+
+                final_message = ', '.join(error_messages).capitalize() + '.'
+                return Response({'message': final_message}, status=status.HTTP_400_BAD_REQUEST)
 
 
     @action(detail=False, methods=['GET', 'PUT', 'DELETE'])
@@ -88,6 +97,16 @@ class APIViewBase(APIView):
         """Manually define get_serializer for APIView"""
         return self.serializer_class(*args, **kwargs)
 
+    def gen_tokens_for_user(self, user) -> Response:
+        refresh_token = RefreshToken.for_user(user)
+        access_token = refresh_token.access_token
+        response_data = {'access_token': str(access_token)}
+
+        response = Response(response_data, status=status.HTTP_200_OK)
+        response.set_cookie(key='refresh_token', value=refresh_token, max_age=settings.REFRESH_TOKEN_LIFETIME.total_seconds(),
+                            secure=settings.SESSION_COOKIE_SECURE, httponly=True, samesite=settings.SESSION_COOKIE_SAMESITE, domain=None, path='/')
+        return response
+
 class UserActivationViewSet(APIViewBase):
     serializer_class = UserActivationSerializer
 
@@ -105,13 +124,14 @@ class UserActivationViewSet(APIViewBase):
 
         try:
             user = User.objects.get(id=user_id)
-            if user.is_verified:
-                return Response({'status': 'Email already verified'}, status=status.HTTP_200_OK)
+
+            # if user.is_verified:
+            #     return Response({'status': 'Email already verified'}, status=status.HTTP_200_OK)
 
             user.is_verified = True
             user.save()
 
-            return Response({'message': 'Email verified successfully'}, status=status.HTTP_200_OK)
+            return self.gen_tokens_for_user(user) # Returns Response with refresh token in http-ONLY cookie nad access token in body
 
         except User.DoesNotExist:
             return Response({'status': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
@@ -147,12 +167,18 @@ class CreateJWT(TokenObtainPairView):
 
         # Set refresh token in HTTP-only cookie (not body) - reportedly more secure than storing in localstore in frontned - immune to js thus save from XSS - I think at least)
         if refresh_token:
-            response.set_cookie(key='refresh_token', value=refresh_token, max_age=settings.REFRESH_TOKEN_LIFETIME,
-                                secure=settings.SESSION_COOKIE_SECURE, httponly=True, samesite=settings.SESSION_COOKIE_SAMESITE)
+            response.set_cookie(key='refresh_token', value=refresh_token, max_age=settings.REFRESH_TOKEN_LIFETIME.total_seconds(),
+                            secure=settings.SESSION_COOKIE_SECURE, httponly=True, samesite=settings.SESSION_COOKIE_SAMESITE, domain=None, path='/')
 
         return response
 
 class RefreshJWT(TokenRefreshView):
     def post(self, request, *args, **kwargs):
-        request.data['refresh'] = request.COOKIES.get('refresh_token') # Get the data from http-only cookie and pass into default endpoint in body
+
+        refresh_token = request.COOKIES.get('refresh_token')
+
+        if not refresh_token:
+            return Response({'refresh_token': ['No refresh_token in cookies']}, status=400)
+
+        request.data['refresh'] = refresh_token # Get the data from http-only cookie and pass into default endpoint in body
         return super().post(request, *args, **kwargs) # Return new access token

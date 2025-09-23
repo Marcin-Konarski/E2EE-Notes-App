@@ -1,4 +1,4 @@
-import apiClient from '@/services/ApiClient';
+import { apiClient } from "@/services/ApiClient"
 
 
 class LoginService {
@@ -8,15 +8,15 @@ class LoginService {
     }
 
     getAccountDetails() {
-        return apiClient.post('/users/users/me/', ); // TODO: provide access token here
+        return apiClient.get('/users/users/me/');
     }
 
     getTokens(data) {
         return apiClient.post('/users/jwt/create/', data)
     }
 
-    refreshToken() { // TODO: provide refresh token from http-only cookie here
-
+    refreshToken() {
+        return apiClient.post('/users/jwt/refresh/');
     }
 }
 

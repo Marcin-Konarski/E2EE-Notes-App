@@ -1,43 +1,56 @@
-import { useParams } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom'
 
-import { useUserContext } from '@/hooks/useUserContext'
-import useSendEmail from '@/hooks/useSendEmail'
-import useGetToken from '@/hooks/useGetToken'
+import { useUserContext } from '@/hooks/useUserContext';
+import useAuth from '@/hooks/useAuth';
+import AlertSuccess from '@/components/ui/AlertSuccess';
+import AlertError from '@/components/ui/AlertError';
+import { Button } from '@/components/ui/Button';
+
+
 
 const EmailVerification = () => {
-  const { id } = useParams();
+  const navigate = useNavigate();
+  const { activationKey } = useParams();
+  const [status, setStatus] = useState('loading');
+  const { verifyEmail, isLoading, error } = useAuth();
   const { user } = useUserContext();
-  const { verifyAccount, resendVerificationEmail, isEmailConfirmed, emailError } = useSendEmail();
-  const { getToken, accessToken, refreshToken, tokenError } = useGetToken();
+
 
   useEffect(() => {
-    if (!id) return
+    const verify = async () => {
+      try {
+        const result = await verifyEmail(activationKey);
 
-    verifyAccount({'activation_key': id});
-
-    const data = {
-      'username': user.username,
-      'password': user.password
+        if (result.success) {
+          setStatus('success');
+          navigate('/');
+        } else {
+          setStatus('error');
+        }
+      } catch (err) {
+        setStatus('error');
+      }
     }
-    if (isEmailConfirmed) {
-      getToken(data)
-    }
 
-    console.log(accessToken);
-
-
-  }, [id, isEmailConfirmed, accessToken])
-
-  useEffect(() => {
-    console.log(emailError);
-    console.log(tokenError);
-  }, [emailError, tokenError])
+    verify();
+  }, [activationKey])
 
 
 
+  if (isLoading || status === 'loading') {
+    return <AlertSuccess title={'Hold On'} className={'!block !p-4 mx-auto max-w-md'} green={false}>Verifying your email...</AlertSuccess>;
+  }
 
-  return <></>
+  if (status === 'success') {
+    return <AlertSuccess title={`Welcome ${user?.username}!`} className={'!block !p-4 mx-auto max-w-md'} green={true}> Redirecting....</AlertSuccess>;
+  }
+
+  return (<div className='flex flex-col max-w-full space-y-5'>
+    <AlertError title={'ERROR'} className={'!block !p-4 mx-auto max-w-md'}>{error}</AlertError>
+    <Button variant='secondary'>Resend Email</Button>
+  </div>);
+
 }
 
 export default EmailVerification

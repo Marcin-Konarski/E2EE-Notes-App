@@ -33,7 +33,7 @@ POST /users/jwt/create/
     "password": ""
 }
 
-PUT /users/jwt/refresh/
+POST /users/jwt/refresh/
 {
 }
 

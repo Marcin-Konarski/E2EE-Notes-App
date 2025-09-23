@@ -20,6 +20,5 @@ def send_verification_mail(user_id, username, email):
             }
         )
         message.send([email]) # Requires a list of recipiants
-        print('email sent successfuly')
     except BadHeaderError as e:
         print(e)

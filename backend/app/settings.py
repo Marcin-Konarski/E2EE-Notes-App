@@ -84,11 +84,20 @@ INTERNAL_IPS = [
     '127.0.0.1',
 ]
 
-FRONTEND_URL = 'http://localhost:8080'
+FRONTEND_URL = 'http://127.0.0.1:8080' #'http://localhost:8080'
 
 CORS_ALLOWED_ORIGINS = [
     FRONTEND_URL,
+    'http://localhost:8080',
     'http://127.0.0.1:8080',
+    'http://frontend:8080',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    FRONTEND_URL,
+    'http://localhost:8080',
+    'http://127.0.0.1:8080',
+    'http://frontend:8080',
 ]
 
 # Database
@@ -166,11 +175,13 @@ REST_FRAMEWORK = {
 ACCOUNT_ACTIVATION_TIME = 60*60*24 # One day in seconds - this setting defines how long user has to click a link in the verification email upon registerning
 
 
-SESSION_COOKIE_SECURE = True # Enable secure cookies
-CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = False
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_CREDENTIALS = True
 
-SESSION_COOKIE_SAMESITE = 'Lax' # SameSite settings for cookies
-CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SAMESITE = 'None'
 
 REFRESH_TOKEN_LIFETIME = timedelta(days=1)
 
@@ -197,3 +208,24 @@ SERVER_EMAIL = environ['SERVER_EMAIL']
 # For my case - since celery doesn't support Windows - runing celery in WSL then WSL address of default router is neccessary.
 CELERY_BROKER_URL = environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/1')
 
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'accounts.views': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}

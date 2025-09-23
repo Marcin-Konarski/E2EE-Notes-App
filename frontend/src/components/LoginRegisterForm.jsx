@@ -40,7 +40,6 @@ const LoginRegisterForm = ({ title, redirect, inputs, form, button, reset, onSub
                         />
                     )}
 
-
                     {/* Button part */}
                     <div className='flex flex-col m-0'>
                         <Button type='submit'>{button}</Button>
@@ -48,15 +47,6 @@ const LoginRegisterForm = ({ title, redirect, inputs, form, button, reset, onSub
                             <Link to='/'>Forgot password?</Link>
                         </Button>}
                     </div>
-                    {/* <div className='flex flex-col m-0'>
-                        <Button type='submit'>{button}</Button>
-                        {reset && <div className='flex flex-1 justify-between'>
-                            <Label>Forgot password?</Label>
-                            <Button variant='link' asChild>
-                                <Link to='/'>Reset password</Link>
-                            </Button>
-                        </div>}
-                    </div> */}
 
                 </div>
             </form>
