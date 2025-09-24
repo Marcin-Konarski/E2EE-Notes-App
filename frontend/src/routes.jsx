@@ -3,7 +3,7 @@ import Layout from "@/pages/Layout";
 import Home from '@/pages/Home'
 import Notes from '@/pages/Notes'
 import Keys from '@/pages/Keys'
-import Settings from '@/pages/Settings'
+import Profile from '@/pages/Profile'
 import Login from '@/pages/Login'
 import Register from "@/pages/Register";
 import EmailVerification from "./pages/EmailVerification";
@@ -19,7 +19,7 @@ const router = createBrowserRouter([
         { index: true, Component: Home },
         { path: "notes", Component: Notes },
         { path: "keys", Component: Keys },
-        { path: "settings", Component: Settings },
+        { path: "profile", Component: Profile },
         { path: "login", Component: Login },
         { path: "signup", Component: Register },
         { path: "verify/:activationKey", Component: EmailVerification},

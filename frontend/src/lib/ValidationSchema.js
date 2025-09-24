@@ -45,6 +45,19 @@ const LoginFormSchema = z.object({
     password: z.string().min(1, {message: 'This field is required.'}),
 });
 
+const UpdateUserDataSchema = z.object({
+    username: usernameSchema,
+    email: emailSchema,
+})
+
+const UpdatePasswordSchema = z.object({
+    currentPassword: z.string().min(1, { message: "This field is required." }),
+    newPassword: passwordSchema,
+    confirmPassword: z.string().min(1, { message: "This field is required." }) // This is just so for the estetics so that if all fields are empty the confirm password also displays error - in this way it simply looks better
+}).refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Passwords do not match.',
+    path: ["confirmPassword"]
+});
 
 // const userId = z.string().refine(async (id) => { //TODO: elaborate on this with zod
 //   // verify that ID exists in database
@@ -52,4 +65,4 @@ const LoginFormSchema = z.object({
 // });
 
 
-export { RegisterFormSchema, LoginFormSchema }
+export { RegisterFormSchema, LoginFormSchema, UpdateUserDataSchema, UpdatePasswordSchema }

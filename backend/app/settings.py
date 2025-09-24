@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework_simplejwt.token_blacklist', # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/blacklist_app.html
     'corsheaders', # pip install django-cors-headers
     'rest_framework', # pip install djangorestframework
     'django_filters', # pip install django-filter
@@ -186,8 +187,10 @@ CSRF_COOKIE_SAMESITE = 'None'
 REFRESH_TOKEN_LIFETIME = timedelta(days=1)
 
 SIMPLE_JWT = {
-   "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
-    "REFRESH_TOKEN_LIFETIME": REFRESH_TOKEN_LIFETIME,
+    # 'ALGORITHM': 'HS512',
+    # 'SIGNING_KEY': environ['SIGNING_KEY'],
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'REFRESH_TOKEN_LIFETIME': REFRESH_TOKEN_LIFETIME,
 }
 
 # Email related stuff:

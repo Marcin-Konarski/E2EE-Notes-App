@@ -1,8 +1,12 @@
-import { NavBarComponent } from '@/components/ui/NavBarComponent'
-import { Book, Sunset, Trees, Key, FilePlus} from "lucide-react";
+import { Book, Sunset, Trees, Key, FilePlus, Settings, LogOut} from "lucide-react";
+
 import ArxLogo from '@/assets/logo.svg'
+import { NavBarComponent } from '@/components/ui/NavBar/NavBarComponent'
+import { useUserContext } from '@/hooks/useUserContext';
+
 
 const NavBar = () => {
+    const { user, logout } = useUserContext();
 
     const logo = {
         url: "/",
@@ -65,29 +69,48 @@ const NavBar = () => {
             ],
         },
         {
-            title: "Settings", // TODO: Here will be theme toggle!!
-            url: "/settings",
-        },
-        {
             title: "Source Code",
             url: "https://github.com/Marcin-Konarski/Arx",
         },
     ]
 
-    const auth = {
-        login: {
+    const authAnonymous = [
+        {
             title: "Login",
-            url: "/login"
+            url: "/login",
+            variant: "outline"
         },
-        signup: {
+        {
             title: "Sign Up",
-            url: "/signup" 
+            url: "/signup",
+            variant: "outline"
         },
-    }
+    ];
+
+    const authUser = user && [
+        {
+            title: user.username,
+            url: "/profile",
+            items: [
+                {
+                title: "Settings",
+                icon: <Settings className="size-5 shrink-0" />,
+                url: "/profile",
+                },
+                {
+                title: "Log out",
+                icon: <LogOut className="size-5 shrink-0" />,
+                url: "/login",
+                isLogOut: true,
+                function: logout,
+                },
+            ],
+        }
+    ];
 
     return (
-        <NavBarComponent logo={logo} menu={menu} auth={auth} />
-    )
+        <NavBarComponent logo={logo} menu={menu} authButtons={authUser || authAnonymous} />
+    );
 }
 
 export default NavBar

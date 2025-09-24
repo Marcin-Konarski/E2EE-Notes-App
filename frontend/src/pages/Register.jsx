@@ -64,7 +64,7 @@ const Register = () => {
 
   return (
     <div className='flex flex-col items-center justify-center h-full'>
-      <div className='flex justify-center mb-10' style={{ width: 'clamp(300px, 20vw, 800px)' }}>
+      <div className='flex justify-center mb-10' style={{ width: 'clamp(300px, 30vw, 600px)' }}>
         {isLoading && (
           <AlertSuccess title={'Hold On'} className={'!block !py-4 w-full mb-5'} green={false}>Sending Email...</AlertSuccess>
         )}
@@ -74,7 +74,7 @@ const Register = () => {
         )}
       </div>
 
-      <LoginRegisterForm title='Create an account' redirect={redirect} inputs={inputs} form={form} button='Sign in' onSubmit={onSubmit}/>
+      <LoginRegisterForm title='Create an account' redirect={redirect} inputs={inputs} form={form} button='Sign Up' onSubmit={onSubmit}/>
     </div>
   );
 }

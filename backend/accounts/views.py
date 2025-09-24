@@ -182,3 +182,24 @@ class RefreshJWT(TokenRefreshView):
 
         request.data['refresh'] = refresh_token # Get the data from http-only cookie and pass into default endpoint in body
         return super().post(request, *args, **kwargs) # Return new access token
+
+
+import logging
+logger = logging.getLogger(__name__)
+
+class ExpireJWT(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+
+        refresh_token = request.COOKIES.get('refresh_token')
+        logger.info(f'refresh_token: {refresh_token}')
+        if not refresh_token:
+            return Response({'message': 'No refresh token.'}, status=status.HTTP_204_NO_CONTENT) # This endpoint returns status code of 204 as well as if there is no refresh token that means user is already logged out so everything is fine
+
+        token = RefreshToken(refresh_token)
+        logger.info(f'token: {token}')
+
+        token.blacklist() # Revoke token so that it cannot be used again
+
+        return Response({'message': 'Successfuly logged out'}, status=status.HTTP_204_NO_CONTENT)

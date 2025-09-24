@@ -9,7 +9,7 @@ x-django-api: &django-api
     USER: arx_user
     PASSWORD: quujmsit
     CELERY_BROKER_URL: redis://redis:6379/1     # TODO: ADD ENVIRONMENT VARIABLES FOR SENDING EMAILS
-    SALT: alamakota
+    SIGNING_KEY: c59cae2303ed3e6c534fad7330de7813eefd0c4ff36cf29b41abe4ad11ffd0a764c3fd7ee586c72f9b523cbdd5f37cb99b77a0ec1f80abaa7211929dfcdb64b8 # 512 bits signing key from https://jwtsecrets.com/#generator
   depends_on:
     - postgres
     - redis

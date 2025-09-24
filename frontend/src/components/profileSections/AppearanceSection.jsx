@@ -1,0 +1,38 @@
+import React from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { ModeToggle } from '../ModeToggle';
+import { useTheme } from '@/hooks/useTheme';
+
+
+const AppearanceSection = () => {
+    const { theme } = useTheme()
+
+    return (
+        <div className="space-y-6" style={{ width: 'clamp(300px, 30vw, 600px)' }}>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Appearance</CardTitle>
+                    <CardDescription>
+                        Chagne how the page looks
+                    </CardDescription>
+                </CardHeader>
+
+                <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between rounded-lg border p-4">
+                        <div className="flex items-center gap-3">
+                            <div>
+                                <h4 className="font-medium">Theme</h4>
+                                <p className="text-muted-foreground text-sm">
+                                    Current theme: {theme}
+                                </p>
+                            </div>
+                        </div>
+                        <ModeToggle />
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
+}
+
+export default AppearanceSection

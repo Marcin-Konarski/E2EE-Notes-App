@@ -18,6 +18,10 @@ class LoginService {
     refreshToken() {
         return apiClient.post('/users/jwt/refresh/');
     }
+
+    logoutUser() {
+        return apiClient.post('/users/jwt/expire/')
+    }
 }
 
 export default new LoginService

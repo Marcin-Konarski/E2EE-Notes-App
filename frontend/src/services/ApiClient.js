@@ -45,19 +45,22 @@ apiClient.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
-        if (error.response.status === 401) {
+        if (
+            error.response.status === 401 &&
+            !originalRequest._retry &&
+            !originalRequest.url.endsWith('/users/jwt/refresh/')
+        ) {
+            originalRequest._retry = true;
             try {
                 const response = await apiClient.post('/users/jwt/refresh/');
-
-                const token = response.data.access
-                setAccessToken();
+                const token = response.data.access;
+                setAccessToken(token);
 
                 originalRequest.headers.Authorization = `Bearer ${token}`;
-                originalRequest._retry = true;
-
                 return apiClient(originalRequest);
             } catch (err) {
                 clearAccessToken();
+                return Promise.reject(err);
             }
         }
 

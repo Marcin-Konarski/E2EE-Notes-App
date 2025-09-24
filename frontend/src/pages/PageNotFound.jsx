@@ -1,5 +1,5 @@
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
-import NavBar from '@/components/NavBar'
+import NavBar from '@/components/ui/NavBar/NavBar'
 import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router-dom'
 import { Button } from '@/components/ui/Button';
 

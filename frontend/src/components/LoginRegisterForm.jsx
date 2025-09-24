@@ -26,7 +26,7 @@ const LoginRegisterForm = ({ title, redirect, inputs, form, button, reset, onSub
                     {/* Inputs part */}
                     {inputs.map( input => 
                         <FormField key={input.name} control={form.control} name={input.name} render={({ field }) => (
-                            // Any component here can access field name "username" via context
+                            // Any component here can access field name e.g. "username" via context
                             <FormItem>
                                 <FormControl>
                                     {['password', 'confirm'].includes(input.name)
