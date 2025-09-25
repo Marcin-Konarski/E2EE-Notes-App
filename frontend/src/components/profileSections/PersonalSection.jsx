@@ -1,8 +1,8 @@
 import { Label } from "@radix-ui/react-label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "../ui/Form";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/Form";
 
 
 const PersonalSection = ({form, inputs, onSubmit, button}) => {
@@ -21,7 +21,7 @@ const PersonalSection = ({form, inputs, onSubmit, button}) => {
           <div className="space-y-6">
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit, (errors) => console.log('Validation errors:', errors))}>
+              <form onSubmit={form.handleSubmit(onSubmit)}>
                 <div className='flex flex-col space-y-4'>
 
                   {/* Inputs fields */}

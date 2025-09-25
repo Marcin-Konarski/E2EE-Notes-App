@@ -2,12 +2,12 @@ import { useState } from 'react'
 import { useUserContext } from './useUserContext';
 import EmailService from '@/services/EmailService';
 import { setAccessToken } from '@/services/ApiClient';
-import LoginService from '@/services/LoginService';
+import UserService from '@/services/UserService';
 
 const useAuth = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-    const { login, logout } = useUserContext();
+    const { user, login, logout } = useUserContext();
 
 
     const register = async (data) => {
@@ -16,7 +16,7 @@ const useAuth = () => {
         setError(null);
 
         try {
-            const response = await LoginService.createAccount(data);
+            const response = await UserService.createUser(data);
             return { success: true };
         } catch (err) {
             const errorMessage = err.response?.data?.message || 'Registration Failed'
@@ -38,7 +38,7 @@ const useAuth = () => {
 
             setAccessToken(token);
 
-            const userResponse = await LoginService.getAccountDetails();
+            const userResponse = await UserService.getUserDetails();
             login(userResponse.data);
 
             return {success: true};
@@ -57,9 +57,9 @@ const useAuth = () => {
         setError(null);
 
         try {
-            const tokenResponse = await LoginService.getTokens(credentials);
+            const tokenResponse = await UserService.getTokens(credentials);
             setAccessToken(tokenResponse.data.access);
-            const userResponse = await LoginService.getAccountDetails();
+            const userResponse = await UserService.getUserDetails();
             login(userResponse.data);
 
             return {success: true}
@@ -78,9 +78,9 @@ const useAuth = () => {
         setError(null);
 
         try {
-            const response = await LoginService.refreshToken();
+            const response = await UserService.refreshToken();
             setAccessToken(response.data.access);
-            const userDataResponse = await LoginService.getAccountDetails();
+            const userDataResponse = await UserService.getUserDetails();
             login(userDataResponse.data);
 
             return {success: true}
@@ -93,6 +93,53 @@ const useAuth = () => {
         }
     };
 
+    const updateUser = async (data) => {
+        setIsLoading(true);
+        setError(null);
+
+        const username = user.username
+        const email = user.email
+        if (username === data.username && email === data.email) {
+            setIsLoading(false);
+            return {success: true, response: 'Nothing to update'}
+        }
+
+        try {
+            const response = await UserService.updateUser(data);
+            if (response.status === 200)
+                login(response.data);
+
+                if (email !== response.data.email)
+                    return {success: true, response: 'Profile updated successfully! Verification email has been sent. Please verify you account by clicking a link in the email.'}
+
+            return {success: true, response: response.data}
+        } catch (err) {
+            const errorMessage = err.response?.data?.username || err.response?.data?.email || 'Failed updating user details';
+            setError(errorMessage);
+            return {success: false, error: errorMessage};
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const changePassword = async (data) => {
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            const response = await UserService.changePassword(data);
+            return { success: true, response: response.data };
+        } catch (err) {
+            const errorMessage =
+                err.response?.data?.currentPassword ||
+                err.response?.data?.confirmPassword ||
+                'Failed to update password';
+            setError(errorMessage);
+            return { success: false, error: errorMessage };
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const resendVerificationEmail = async (email) => {
         setIsLoading(true);
@@ -111,8 +158,25 @@ const useAuth = () => {
         }
     };
 
+    const deleteUser = async () => {
+        setIsLoading(true);
+        setError(null);
 
-    return { register, verifyEmail, loginUser, loginOnPageRefresh, resendVerificationEmail, isLoading, error };
+        try {
+            const response = await UserService.deleteUser();
+            logout(); // Log out user after deletion
+            return { success: true };
+        } catch (err) {
+            const errorMessage = err.response?.data?.message || 'Failed to delete account';
+            setError(errorMessage);
+            return { success: false, error: errorMessage };
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+
+    return { register, verifyEmail, loginUser, loginOnPageRefresh, updateUser, changePassword, resendVerificationEmail, deleteUser, isLoading, error };
 }
 
 export default useAuth

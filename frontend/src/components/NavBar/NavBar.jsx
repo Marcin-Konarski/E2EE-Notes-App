@@ -1,7 +1,7 @@
 import { Book, Sunset, Trees, Key, FilePlus, Settings, LogOut} from "lucide-react";
 
 import ArxLogo from '@/assets/logo.svg'
-import { NavBarComponent } from '@/components/ui/NavBar/NavBarComponent'
+import { NavBarComponent } from '@/components/NavBar/NavBarComponent'
 import { useUserContext } from '@/hooks/useUserContext';
 
 

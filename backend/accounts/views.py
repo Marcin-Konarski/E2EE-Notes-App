@@ -64,13 +64,39 @@ class UserViewSet(ModelViewSet):
             serializer = UserSerializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         elif request.method == 'PUT':
+            original_email = user.email
+            original_username = user.username
+            new_email = request.data.get('email')
+            new_username = request.data.get('username')
+
             serializer = UserUpdateSerializer(user, data=request.data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
+
+            if original_email == new_email and original_username == new_username:
+                return Response(serializer.data, status=status.HTTP_200_OK)
+
+            if original_email != new_email:
+                user.is_verified = False
+                user.save()
+                send_verification_mail.delay(str(user.id), new_username, new_email)
+
             return Response(serializer.data, status=status.HTTP_200_OK)
         elif request.method == 'DELETE':
             user.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=['POST'], permission_classes=[IsAuthenticated])
+    def change_password(self, request):
+        user = request.user
+        current_password = request.data.get('currentPassword')
+        new_password = request.data.get('newPassword')
+
+        if not user.check_password(current_password):
+            return Response({'currentPassword': 'Current password is incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
+        user.set_password(new_password)
+        user.save()
+        return Response({'message': 'Password updated successfully.'}, status=status.HTTP_200_OK)
 
 
 class UserKeyViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet): # No list and update actions here
@@ -183,23 +209,16 @@ class RefreshJWT(TokenRefreshView):
         request.data['refresh'] = refresh_token # Get the data from http-only cookie and pass into default endpoint in body
         return super().post(request, *args, **kwargs) # Return new access token
 
-
-import logging
-logger = logging.getLogger(__name__)
-
 class ExpireJWT(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
 
         refresh_token = request.COOKIES.get('refresh_token')
-        logger.info(f'refresh_token: {refresh_token}')
         if not refresh_token:
-            return Response({'message': 'No refresh token.'}, status=status.HTTP_204_NO_CONTENT) # This endpoint returns status code of 204 as well as if there is no refresh token that means user is already logged out so everything is fine
+            return Response({'message': 'No refresh token.'}, status=status.HTTP_200_OK) # This endpoint returns status code of 204 as well as if there is no refresh token that means user is already logged out so everything is fine
 
         token = RefreshToken(refresh_token)
-        logger.info(f'token: {token}')
-
         token.blacklist() # Revoke token so that it cannot be used again
 
-        return Response({'message': 'Successfuly logged out'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'message': 'Successfuly logged out'}, status=status.HTTP_200_OK)

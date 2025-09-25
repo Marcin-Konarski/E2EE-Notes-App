@@ -1,6 +1,6 @@
 import { createContext, useMemo, useState } from "react";
 import { clearAccessToken } from "@/services/ApiClient";
-import LoginService from "@/services/LoginService";
+import UserService from "@/services/UserService";
 
 export const UserContext = createContext(undefined);
 
@@ -17,12 +17,11 @@ export const UserProvider = ({ children }) => {
             id: data.id,
             username: data.username,
             email: data.email,
-            isVerified: data.email_confirmed,
         });
     };
 
     const logout = () => {
-        LoginService.logoutUser();
+        UserService.expireToken();
         clearAccessToken();
         setUser(null);
     };

@@ -1,7 +1,7 @@
 import React from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
-import { ModeToggle } from '../ModeToggle';
 import { useTheme } from '@/hooks/useTheme';
+import { ModeToggle } from '@/components/ModeToggle';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 
 
 const AppearanceSection = () => {

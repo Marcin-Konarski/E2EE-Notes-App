@@ -7,6 +7,7 @@ import { RegisterFormSchema } from '@/lib/ValidationSchema';
 import LoginRegisterForm from '@/components/LoginRegisterForm';
 import AlertError from '@/components/ui/AlertError';
 import AlertSuccess from '@/components/ui/AlertSuccess';
+import AlertLoadingError from '@/components/AlertLoadingError';
 
 
 const Register = () => {
@@ -64,7 +65,7 @@ const Register = () => {
 
   return (
     <div className='flex flex-col items-center justify-center h-full'>
-      <div className='flex justify-center mb-10' style={{ width: 'clamp(300px, 30vw, 600px)' }}>
+      {/* <div className='flex justify-center mb-10' style={{ width: 'clamp(300px, 30vw, 600px)' }}>
         {isLoading && (
           <AlertSuccess title={'Hold On'} className={'!block !py-4 w-full mb-5'} green={false}>Sending Email...</AlertSuccess>
         )}
@@ -72,8 +73,9 @@ const Register = () => {
         {error && (
           <AlertError title={'Something Went Wrong'} className={'!block !py-4 w-full mb-5'}>{error}</AlertError>
         )}
-      </div>
+      </div> */}
 
+      <AlertLoadingError isLoading={isLoading} error={error}>Registering...</AlertLoadingError>
       <LoginRegisterForm title='Create an account' redirect={redirect} inputs={inputs} form={form} button='Sign Up' onSubmit={onSubmit}/>
     </div>
   );

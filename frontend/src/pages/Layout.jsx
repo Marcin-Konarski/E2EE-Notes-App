@@ -3,7 +3,7 @@ import { Outlet } from 'react-router-dom'
 
 import { UserProvider } from '@/context/UserContext'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
-import NavBar from '@/components/ui/NavBar/NavBar'
+import NavBar from '@/components/NavBar/NavBar'
 import useAuth from '@/hooks/useAuth'
 
 

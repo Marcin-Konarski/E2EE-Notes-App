@@ -51,7 +51,7 @@ const Login = () => {
 
   return (<div className='flex flex-col justify-center items-center h-full' style={{ width: 'clamp(300px, 20vw, 800px)' }}>
 
-    {createdAccount === 'successful' && //! This is displayed only after redirection from Register page
+    {createdAccount === 'successful' && !error && !isLoading && //! This is displayed only after redirection from Register page
       <AlertSuccess title='Success' className={'!block !p-4 mx-auto max-w-md mb-5'} green={true}>
         <span>
           Account was created successfully. Please check your email to verify your account. Did not receive your email? Check spam or

@@ -1,12 +1,11 @@
 import { Menu } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/NavBar/NavigationMenu";
+import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/NavBar/NavigationMenu";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/Accordion";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-import { useUserContext } from "@/hooks/useUserContext";
 
 
 

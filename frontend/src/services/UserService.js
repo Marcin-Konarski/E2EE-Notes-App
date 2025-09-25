@@ -1,14 +1,26 @@
 import { apiClient } from "@/services/ApiClient"
 
 
-class LoginService {
+class UserService {
 
-    createAccount(data) {
+    createUser(data) {
         return apiClient.post('/users/users/', data);
     }
 
-    getAccountDetails() {
+    getUserDetails() {
         return apiClient.get('/users/users/me/');
+    }
+
+    updateUser(data) {
+        return apiClient.put('/users/users/me/', data);
+    }
+
+    deleteUser() {
+        return apiClient.delete('/users/users/me/');
+    }
+
+    changePassword(data) {
+        return apiClient.post('/users/users/change_password/', data);
     }
 
     getTokens(data) {
@@ -19,9 +31,9 @@ class LoginService {
         return apiClient.post('/users/jwt/refresh/');
     }
 
-    logoutUser() {
+    expireToken() {
         return apiClient.post('/users/jwt/expire/')
     }
 }
 
-export default new LoginService
+export default new UserService

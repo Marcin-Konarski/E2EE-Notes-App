@@ -23,6 +23,16 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email']
         read_only_fields = []  # Remove read_only restriction on username in order to update all provided fields
 
+class ChangePasswordSerializer(serializers.Serializer):
+    currentPassword = serializers.CharField(required=True)
+    newPassword = serializers.CharField(required=True)
+    confirmPassword = serializers.CharField(required=True)
+
+    def validate(self, data):
+        if data['newPassword'] != data['confirmPassword']:
+            raise serializers.ValidationError({'confirmPassword': 'Passwords do not match.'})
+        return data
+
 class UserKeySerializer(serializers.ModelSerializer):
     public_key = serializers.CharField(required=True, allow_blank=False) # This field has to be CharField as otherwise public_key is not read and saved in db
 
