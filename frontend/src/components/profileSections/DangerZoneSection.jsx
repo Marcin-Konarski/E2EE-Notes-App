@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
-import DialogInfo from '../DialogInfo';
-import useAuth from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+
+import useAuth from '@/hooks/useAuth';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import DialogInfo from '@/components/DialogInfo';
 
 const DangerZoneSection = () => {
     const { deleteUser } = useAuth();
@@ -39,7 +40,7 @@ const DangerZoneSection = () => {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="flex items-center justify-between rounded-lg border p-4">
+                        <div className="flex items-center justify-between rounded-sm border p-4">
                             <div className="flex items-center gap-3">
                                 <div>
                                     <h4 className="font-medium">Delete Account</h4>

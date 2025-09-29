@@ -78,7 +78,7 @@ const NavBar = () => {
         {
             title: "Login",
             url: "/login",
-            variant: "outline"
+            variant: "default"
         },
         {
             title: "Sign Up",
@@ -93,16 +93,20 @@ const NavBar = () => {
             url: "/profile",
             items: [
                 {
-                title: "Settings",
-                icon: <Settings className="size-5 shrink-0" />,
-                url: "/profile",
+                    title: "Settings",
+                    titleMobile: user.username,
+                    icon: <Settings className="size-5 shrink-0" />,
+                    url: "/profile",
+                    variant: "default"
                 },
                 {
-                title: "Log out",
-                icon: <LogOut className="size-5 shrink-0" />,
-                url: "/login",
-                isLogOut: true,
-                function: logout,
+                    title: "Logout",
+                    titleMobile: "Logout",
+                    icon: <LogOut className="size-5 shrink-0" />,
+                    url: "/login",
+                    isLogOut: true,
+                    function: logout,
+                    variant: "outline"
                 },
             ],
         }

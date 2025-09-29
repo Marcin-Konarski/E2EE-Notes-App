@@ -1,5 +1,8 @@
+@import './styles/_variables.scss';
+@import './styles/_keyframe-animations.scss';
 @import "tailwindcss";
 @import "tw-animate-css";
+
 
 @custom-variant dark (&:is(.dark *));
 
@@ -10,6 +13,7 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
+  --tt-bg-color: var(--background) !important;
   /* background-color: #000100; */
 
   font-synthesis: none;
@@ -91,6 +95,7 @@
 }
 
 .dark {
+  --tt-bg-color: var(--background) !important;
   --background: oklch(7.638% 0.02505 278.689);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.21 0.006 285.885);

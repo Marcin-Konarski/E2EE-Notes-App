@@ -12,6 +12,8 @@ class Note(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name='note') # Maybe change this to make it set to the last user that has permissions to this note???
     is_encrypted = models.BooleanField(default=False)
     created_at = models.DateField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True) # Track modifications
+    version = models.IntegerField(default=1) # Track version for conflict resolution
 
     def __str__(self) -> str:
         return self.title

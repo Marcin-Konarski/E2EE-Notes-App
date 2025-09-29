@@ -8,18 +8,19 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
 
-
 const NavBarComponent = ({ logo, menu, authButtons }) => {
   return (
-    <section className="py-4">
-      <div className="container mx-auto">
+    <section className="py-4 w-full">
+      <div className="w-full px-5">
         {/* Desktop Menu */}
-        <nav className="hidden justify-between lg:flex">
+        <nav className="hidden w-full justify-between lg:flex px-[2vw]">
           <div className="flex items-center gap-6">
             {/* Logo */}
-            <a href={logo.url} className="flex items-center"> {/* This is left deliberately as href instead of Link fron react router cuz there is just next to it Home button that points to home and I want to enable the possibility of full page refresh is someone wants to */}
+            <a href={logo.url} className="flex items-center">
               <img src={logo.src} className={"h-" + logo.size + " dark:invert"} alt={logo.alt} />
             </a>
+
+            {/* Main Section */}
             <div className="flex items-center">
               <NavigationMenu>
                 <NavigationMenuList>
@@ -28,34 +29,30 @@ const NavBarComponent = ({ logo, menu, authButtons }) => {
               </NavigationMenu>
             </div>
           </div>
-          {/* User/Login Section */}
 
-          {authButtons?.items
-            ? <div className="flex gap-2">
-                {authButtons.map(({ title, url, variant }, idx) => (
-                  <Button asChild key={idx} variant={variant}>
-                    <Link to={url}>{title}</Link>
-                  </Button>
-                ))}
-              </div>
-            : <div className="flex items-center">
+          {/* User/Login Section */}
+          {authButtons?.[0]?.items
+            ? <div className="flex items-center">
                 <NavigationMenu className='w-48'>
                   <NavigationMenuList className='w-48'>
                     {authButtons.map((item) => RenderMenuItem(item))}
                   </NavigationMenuList>
                 </NavigationMenu>
               </div>
+            : <div className="flex gap-2">
+                {authButtons.map(({ title, url, variant }, idx) => (
+                  <Button asChild key={idx} variant={variant}>
+                    <Link to={url}>{title}</Link>
+                  </Button>
+                ))}
+              </div>
           }
-
         </nav>
-
-
 
         {/* Mobile Menu */}
         <div className="block lg:hidden">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            {/* <a href={logo.url} className="flex items-center gap-2"> */}
             <Link to={logo.url} className="flex items-center gap-2">
               <img
                 src={logo.src}
@@ -63,7 +60,6 @@ const NavBarComponent = ({ logo, menu, authButtons }) => {
                 alt={logo.alt}
               />
             </Link>
-            {/* </a> */}
 
             {/* Mobile Side Panel */}
             <Sheet>
@@ -75,7 +71,7 @@ const NavBarComponent = ({ logo, menu, authButtons }) => {
               <SheetContent className="overflow-y-auto">
                 <SheetHeader>
                   <SheetTitle>
-                    <a href={logo.url} className="flex items-center gap-2"> {/* This is left deliberately as href instead of Link fron react router cuz there is just below it a Home button that points to home and I want to enable the possibility of full page refresh is someone wants to */}
+                    <a href={logo.url} className="flex items-center gap-2">
                       <img src={logo.src} className={"h-" + logo.size + " dark:invert"} alt={logo.alt} />
                     </a>
                   </SheetTitle>
@@ -85,13 +81,27 @@ const NavBarComponent = ({ logo, menu, authButtons }) => {
                     {menu.map((item) => RenderMobileMenuItem(item))}
                   </Accordion>
 
-                  {/* User/Login Section */}
-                  {authButtons.map(({ title, url, variant }, idx) => (
-                    <Button asChild key={idx} variant={variant}>
-                      <Link to={url}>{title}</Link>
-                    </Button>
-                  ))}
-
+                  {/* User/Login Section - Mobile */}
+                  {authButtons?.[0]?.items 
+                    ? // If user is logged in, show the mobile buttons from authUser items
+                      authButtons[0].items.map((button, id) => 
+                        button.function ? (
+                          <Button key={id} variant={button.variant} onClick={button.function}>
+                            {button.titleMobile}
+                          </Button>
+                        ) : (
+                          <Button asChild key={id} variant={button.variant}>
+                            <Link to={button.url}>{button.titleMobile}</Link>
+                          </Button>
+                        )
+                      )
+                    : // If user is not logged in, show login/signup buttons
+                      authButtons.map(({ title, url, variant }, idx) => (
+                        <Button asChild key={idx} variant={variant}>
+                          <Link to={url}>{title}</Link>
+                        </Button>
+                      ))
+                  }
                 </div>
               </SheetContent>
             </Sheet>
@@ -101,7 +111,6 @@ const NavBarComponent = ({ logo, menu, authButtons }) => {
     </section>
   );
 };
-
 
 const RenderMenuItem = (item) => {
   if (item.items) {
@@ -113,7 +122,7 @@ const RenderMenuItem = (item) => {
             subItem.isLogOut ? (
               <NavigationMenuLink asChild key={subItem.title}>
                 <Button onClick={subItem.function} variant="ghost" className={cn( "flex flex-row gap-4",
-                          "w-full rounded-md p-3 leading-none text-sm font-semibold justify-start" )} >
+                          "w-full rounded-xs p-3 leading-none text-sm font-semibold justify-start" )} >
                   <span className="text-foreground">{subItem.icon}</span>
                   <span>{subItem.title}</span>
                 </Button>
@@ -133,7 +142,7 @@ const RenderMenuItem = (item) => {
         asChild
         className={cn(
           "bg-background hover:bg-muted hover:text-accent-foreground group inline-flex",
-          "h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
+          "h-10 w-max items-center justify-center rounded-xs px-4 py-2 text-sm font-medium transition-colors"
         )}
       >
         <Link to={item.url}>{item.title}</Link>
@@ -143,7 +152,6 @@ const RenderMenuItem = (item) => {
 };
 
 const RenderMobileMenuItem = (item) => {
-
   if (item.items) {
     return (
       <AccordionItem key={item.title} value={item.title} className="border-b-0">
@@ -169,7 +177,7 @@ const RenderMobileMenuItem = (item) => {
 const SubMenuLink = ({ item }) => {
   return (
     <Link to={item.url} className={cn("hover:bg-muted hover:text-accent-foreground flex min-w-80 select-none",
-                    "flex-row gap-4 rounded-md p-3 leading-none no-underline outline-none transition-colors")}>
+                    "flex-row gap-4 rounded-sm p-3 leading-none no-underline outline-none transition-colors")}>
       <div className="text-foreground">{item.icon}</div>
       <div>
         <div className="text-sm font-semibold">{item.title}</div>
@@ -184,4 +192,3 @@ const SubMenuLink = ({ item }) => {
 };
 
 export { NavBarComponent };
-
