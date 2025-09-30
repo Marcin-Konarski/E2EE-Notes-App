@@ -23,15 +23,10 @@ const DangerZoneSection = () => {
 
     return (
         <>
-            <DialogInfo
-                open={showDialog}
-                setOpen={setShowDialog}
-                title='Delete account forever'
+            <DialogInfo open={showDialog} setOpen={setShowDialog} title='Delete account forever'
                 description='This Action is irreversible. Are you sure you want to delete your account?'
-                button='Delete'
-                onClick={handleDialogClick}
-            />
-            <div className="space-y-6" style={{ width: 'clamp(300px, 30vw, 600px)' }}>
+                button='Delete' onClick={handleDialogClick} />
+            <div className="space-y-6" style={{ width: 'clamp(300px, 40vw, 600px)' }}>
                 <Card>
                     <CardHeader>
                         <CardTitle>Danger Zone</CardTitle>

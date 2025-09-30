@@ -8,7 +8,7 @@ const AppearanceSection = () => {
     const { theme } = useTheme()
 
     return (
-        <div className="space-y-6" style={{ width: 'clamp(300px, 30vw, 600px)' }}>
+        <div className="space-y-6" style={{ width: 'clamp(300px, 40vw, 600px)' }}>
             <Card>
                 <CardHeader>
                     <CardTitle>Appearance</CardTitle>

@@ -3,6 +3,7 @@ import { Slot } from "@radix-ui/react-slot"
 import { cva } from "class-variance-authority";
 
 import { cn } from "@/lib/utils"
+import { XIcon } from "lucide-react";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xs text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
@@ -45,4 +46,13 @@ function Button({ className, variant, size, asChild = false, ...props }) {
   );
 }
 
-export { Button, buttonVariants }
+function CloseButton({ onClick, className }) {
+  return (
+    <Button variant='ghost' onClick={onClick} className={`!p-0 size-6 ${className}`}>
+        <XIcon className="size-5" />
+        <span className='sr-only'>Close</span>
+    </Button>
+  );
+}
+
+export { Button, buttonVariants, CloseButton }

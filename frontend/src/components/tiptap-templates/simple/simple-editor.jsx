@@ -69,12 +69,9 @@ import { handleImageUpload, MAX_FILE_SIZE } from "@/lib/tiptap-utils"
 import "@/components/tiptap-templates/simple/simple-editor.scss"
 
 import content from "@/components/tiptap-templates/simple/data/content.json"
+import { CloseButton } from '@/components/ui/Button'
 
-const MainToolbarContent = ({
-  onHighlighterClick,
-  onLinkClick,
-  isMobile
-}) => {
+const MainToolbarContent = ({ onHighlighterClick, onLinkClick, isMobile, onClose }) => {
   return (
     <>
       {/* <Spacer /> */}
@@ -120,15 +117,13 @@ const MainToolbarContent = ({
         <ImageUploadButton text="Add" />
       </ToolbarGroup>
       <Spacer />
+        {!isMobile && onClose && <CloseButton className='mx-8 rounded-xl size-8' onClick={onClose} />} {/* Close Button only on desktop menu */}
       {isMobile && <ToolbarSeparator />}
     </>
   );
 }
 
-const MobileToolbarContent = ({
-  type,
-  onBack
-}) => (
+const MobileToolbarContent = ({ type, onBack }) => (
   <>
     <ToolbarGroup>
       <Button data-style="ghost" onClick={onBack}>
@@ -151,27 +146,15 @@ const MobileToolbarContent = ({
   </>
 )
 
-export function SimpleEditor() {
+export function SimpleEditor({ onClose, content = '' }) {
   const isMobile = useIsMobile()
   const { height } = useWindowSize()
   const [mobileView, setMobileView] = React.useState("main")
   const toolbarRef = React.useRef(null)
 
-  // Get content from localStorage on load
-  const initialContent = useMemo(() => {
-    if (typeof winndow === 'undefined')
-      return content // Prevent localStorage access during server-side rendering
-
-    try {
-        const savedContent = localStorage.getItem('SavedNote');
-        return savedContent
-          ? JSON.parse(savedContent)
-          : content;
-    } catch (err) {
-      return content
-    }
+  useEffect(() => {
+    console.log(content);
   }, [])
-
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -211,43 +194,30 @@ export function SimpleEditor() {
         onError: (error) => console.error("Upload failed:", error),
       }),
       Placeholder.configure({
-        placeholder: ({ node }) => {
-          if (node.type.name === 'heading') {
-            return 'Enter a heading...'
-          }
+        placeholder: () => {
           return 'Start typing here...'
         },
       })
     ],
-    content: initialContent,
+    content: '',
   })
 
   useEffect(() => {
-    if (!editor) return
+    if (!editor || !content) return
 
-    const handleUpdate = () => {
-      try{
-        // const html = editor.getHTML()
-        const json = editor.getJSON();
-        console.log(json)
-        localStorage.setItem('SavedNote', JSON.stringify(json));
+    let parsedContent;
+
+    if (typeof content === 'string') {
+      try {
+        parsedContent = JSON.parse(content);
       } catch (err) {
-        console.log(err)
+        parsedContent = content;
       }
     }
 
-    let timeoutId
-    const handleSave = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(handleUpdate, 500)
-    }
+    editor.commands.setContent(parsedContent);
 
-    editor.on('update', handleSave)
-    return () => {
-      clearTimeout(timeoutId);
-      editor.off('update', handleSave)
-    }
-  }, [editor])
+  }, [editor, content])
 
   const rect = useCursorVisibility({
     editor,
@@ -277,7 +247,8 @@ export function SimpleEditor() {
               onHighlighterClick={() => setMobileView("highlighter")}
               onLinkClick={() => setMobileView("link")}
               isMobile={isMobile} 
-              className='!bg-background'/>
+              className='!bg-background'
+              onClose={onClose}/>
           ) : (
             <MobileToolbarContent
               type={mobileView === "highlighter" ? "highlighter" : "link"}

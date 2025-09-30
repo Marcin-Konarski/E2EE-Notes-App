@@ -7,7 +7,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 
 const PersonalSection = ({form, inputs, onSubmit, button}) => {
   return (
-    <div className="space-y-6" style={{ width: 'clamp(300px, 30vw, 600px)' }}>
+    <div className="space-y-6" style={{ width: 'clamp(300px, 40vw, 600px)' }}>
 
       <Card>
         <CardHeader>

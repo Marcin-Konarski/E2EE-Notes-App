@@ -7,10 +7,10 @@ export const UserContext = createContext(undefined);
 export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(null);
 
-    const value = useMemo(() => ({
-        user,
-        setUser,
-    }), [user]);
+    // const value = useMemo(() => ({
+    //     user,
+    //     setUser,
+    // }), [user]);
 
     const login = (data) => {
         setUser({

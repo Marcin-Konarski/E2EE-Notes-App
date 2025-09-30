@@ -6,8 +6,10 @@ import Keys from '@/pages/Keys'
 import Profile from '@/pages/Profile'
 import Login from '@/pages/Login'
 import Register from "@/pages/Register";
-import EmailVerification from "./pages/EmailVerification";
+import EmailVerification from "@/pages/EmailVerification";
 import PageNotFound from "@/pages/PageNotFound";
+import Editor from "@/pages/Editor";
+import Blank from "@/pages/Blank";
 
 
 const router = createBrowserRouter([
@@ -17,12 +19,17 @@ const router = createBrowserRouter([
     errorElement: <PageNotFound />,
     children: [
         { index: true, Component: Home },
-        { path: "notes", Component: Notes },
         { path: "keys", Component: Keys },
         { path: "profile", Component: Profile },
         { path: "login", Component: Login },
         { path: "signup", Component: Register },
         { path: "verify/:activationKey", Component: EmailVerification},
+        { path: "notes", Component: Notes, errorElement: Blank, children:
+          [
+            { index: true, Component: Blank},
+            { path: ":noteId", Component: Editor},
+          ]
+        },
     ]
   },
 ]);

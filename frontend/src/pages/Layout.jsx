@@ -1,17 +1,24 @@
 import { useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 
-import { UserProvider } from '@/context/UserContext'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
+import { UserProvider } from '@/context/UserContext'
+import { NotesProvider } from '@/context/NotesContext'
 import NavBar from '@/components/NavBar/NavBar'
 import useAuth from '@/hooks/useAuth'
+import useNotes from '@/hooks/useNotes'
 
 
 export const LayoutOutlet = () => {
     const { loginOnPageRefresh } = useAuth();
+    const { fetchNotes } = useNotes();
 
     useEffect(() => {
-        loginOnPageRefresh();
+        const init = async () => {
+            await loginOnPageRefresh();
+            fetchNotes();
+        }
+        init();
     }, [])
 
     return (
@@ -30,7 +37,9 @@ const Layout = () => {
     return (
         <ThemeProvider defaultTheme='dark' storageKey='ui-theme'>
             <UserProvider>
-                <LayoutOutlet />
+                <NotesProvider>
+                    <LayoutOutlet />
+                </NotesProvider>
             </UserProvider>
         </ThemeProvider>
     );
