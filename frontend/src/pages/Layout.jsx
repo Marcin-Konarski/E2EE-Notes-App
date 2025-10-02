@@ -15,8 +15,10 @@ export const LayoutOutlet = () => {
 
     useEffect(() => {
         const init = async () => {
-            await loginOnPageRefresh();
-            fetchNotes();
+            const status = await loginOnPageRefresh();
+            if (status.success) {
+                await fetchNotes();
+            }
         }
         init();
     }, [])

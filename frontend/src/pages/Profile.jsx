@@ -26,11 +26,13 @@ const Profile = () => {
   }, [user])
 
   useEffect(() => {
-    if (responseState !== 'none')
-      setTimeout(() => {
+    if (responseState !== 'none') {
+      const timer = setTimeout(() => {
         setResponseState('none');
         setResponseData('');
       }, 5000);
+      return () => clearTimeout(timer);
+    }
   }, [responseState])
 
   const onDetailsSubmit = async (data) => {

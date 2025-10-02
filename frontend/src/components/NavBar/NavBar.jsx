@@ -1,12 +1,22 @@
+import { useLayoutEffect } from "react";
 import { Book, Sunset, Trees, Key, FilePlus, Settings, LogOut} from "lucide-react";
 
 import ArxLogo from '@/assets/logo.svg'
 import { NavBarComponent } from '@/components/NavBar/NavBarComponent'
 import { useUserContext } from '@/hooks/useUserContext';
+import { useNotesContext } from "@/hooks/useNotesContext";
 
 
 const NavBar = () => {
     const { user, logout } = useUserContext();
+    const { currentNoteId, setCurrentNoteId } = useNotesContext();
+
+    useLayoutEffect(() => {
+        const savedNoteId = localStorage.getItem('currentNote');
+        if (savedNoteId) {
+            setCurrentNoteId(savedNoteId);
+        }
+    }, []);
 
     const logo = {
         url: "/",
@@ -25,16 +35,16 @@ const NavBar = () => {
             url: "/notes",
             items: [
                 {
-                title: "New",
-                description: "Create new note",
-                icon: <FilePlus className="size-5 shrink-0" />,
-                url: "/notes",
+                    title: "New Note",
+                    description: "Create new note",
+                    icon: <FilePlus className="size-5 shrink-0" />,
+                    url: "/notes",
                 },
                 {
-                title: "List",
-                description: "View my notes",
-                icon: <Book className="size-5 shrink-0" />,
-                url: "/notes",
+                    title: "Edit Notes",
+                    description: "Edit last note",
+                    icon: <Book className="size-5 shrink-0" />,
+                    url: currentNoteId ? `/notes/${currentNoteId}` : "/notes",
                 },
             ],
         },
@@ -43,28 +53,16 @@ const NavBar = () => {
             url: "/keys",
             items: [
                 {
-                title: "My keys",
-                description: "View your private key",
-                icon: <Key className="size-5 shrink-0 mt-1" />,
-                url: "/keys",
+                    title: "My keys",
+                    description: "View your private key",
+                    icon: <Key className="size-5 shrink-0 mt-1" />,
+                    url: "/keys",
                 },
                 {
-                title: "Ala ma kota",
-                description: "I dwa psy",
-                icon: <Sunset className="size-5 shrink-0" />,
-                url: "/keys",
-                },
-                {
-                title: "Chciała by mieć rybkę",
-                description: "Ale jej rodzice nie pozwalają",
-                icon: <Trees className="size-5 shrink-0" />,
-                url: "/keys",
-                },
-                {
-                title: "A jak jej już pozwolili",
-                description: "To kiedyś przychodzi do domu a rybka puff zniknęła",
-                icon: <Book className="size-5 shrink-0" />,
-                url: "/keys",
+                    title: "Ala ma kota",
+                    description: "ble ble",
+                    icon: <Sunset className="size-5 shrink-0" />,
+                    url: "/keys",
                 },
             ],
         },

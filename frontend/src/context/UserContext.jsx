@@ -6,6 +6,7 @@ export const UserContext = createContext(undefined);
 
 export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     // const value = useMemo(() => ({
     //     user,
@@ -18,18 +19,21 @@ export const UserProvider = ({ children }) => {
             username: data.username,
             email: data.email,
         });
+        setIsLoggedIn(true);
     };
 
     const logout = () => {
         UserService.expireToken();
         clearAccessToken();
         setUser(null);
+        setIsLoggedIn(false);
     };
 
     const values = {
         user,
         login,
         logout,
+        isLoggedIn
     };
 
     return (

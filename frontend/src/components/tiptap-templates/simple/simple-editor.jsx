@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react'
+import React, { useEffect } from 'react'
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react"
 
 // --- Tiptap Core Extensions ---
@@ -70,6 +70,7 @@ import "@/components/tiptap-templates/simple/simple-editor.scss"
 
 import content from "@/components/tiptap-templates/simple/data/content.json"
 import { CloseButton } from '@/components/ui/Button'
+import { useUserContext } from '@/hooks/useUserContext'
 
 const MainToolbarContent = ({ onHighlighterClick, onLinkClick, isMobile, onClose }) => {
   return (
@@ -151,10 +152,7 @@ export function SimpleEditor({ onClose, content = '' }) {
   const { height } = useWindowSize()
   const [mobileView, setMobileView] = React.useState("main")
   const toolbarRef = React.useRef(null)
-
-  useEffect(() => {
-    console.log(content);
-  }, [])
+  const { user } = useUserContext();
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -194,9 +192,14 @@ export function SimpleEditor({ onClose, content = '' }) {
         onError: (error) => console.error("Upload failed:", error),
       }),
       Placeholder.configure({
-        placeholder: () => {
-          return 'Start typing here...'
+        placeholder: ({ editor }) => {
+          const isEmpty = editor.isEmpty;
+          return isEmpty ? 'Start typing here...' : '';
         },
+        showOnlyCurrent: true,
+        includeChildren: false,
+        emptyEditorClass: 'is-editor-empty',
+        emptyNodeClass: 'is-empty',
       })
     ],
     content: '',
@@ -256,7 +259,7 @@ export function SimpleEditor({ onClose, content = '' }) {
           )}
         </Toolbar>
 
-        <EditorContent editor={editor} role="presentation" className="simple-editor-content" />
+        <EditorContent editor={editor} role="presentation" className={user ? `simple-editor-content` : 'simple-editor-content-anonymous'} />
       </EditorContext.Provider>
     </div>
   );

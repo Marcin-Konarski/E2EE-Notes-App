@@ -54,6 +54,28 @@ body,
   font-family: "DM Sans", sans-serif;
 }
 
+.simple-editor-wrapper-anonymous {
+  width: 100vw;
+  height: 90vh;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.simple-editor-content-anonymous {
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+  padding-top: 30px;
+  height: 90%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  border-color: var(--color-primary);
+}
+
 .simple-editor-wrapper {
   width: 100vw;
   height: 90vh;
@@ -85,6 +107,18 @@ body,
 .simple-editor-content .tiptap.ProseMirror.simple-editor {
   flex: 1;
   padding: 2rem 6rem 30vh;
+}
+
+.tiptap.is-editor-empty p.is-empty:first-child::before {
+  color: #adb5bd;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.tiptap p.is-empty:not(:first-child)::before {
+  content: none;
 }
 
 @media screen and (max-width: 480px) {

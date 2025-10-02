@@ -10,7 +10,7 @@ import NotesService from '@/services/NotesService';
 const Editor = () => {
     const navigate = useNavigate();
     const { noteId } = useParams();
-    const { notes } = useNotesContext();
+    const { notes, setCurrentNoteId } = useNotesContext();
     const [isLoading, setIsLoading] = useState(true);
 
     // Find current note based on id from URL based on clicked note to display according body
@@ -21,23 +21,22 @@ const Editor = () => {
     // Find if any note matches id from URL. If not don't display editor at all
     const validId = useMemo(() => {
         return notes.some(note => String(note.id) === String(noteId))
-    }, [noteId])
+    }, [noteId, notes])
 
     // Set loading to false once we have notes so that note's body is correctly displayed in editor
     useEffect(() => {
-        if (notes.length > 0)
+        if (notes.length > 0) {
             setIsLoading(false);
-    }, [notes]);
-    
-    const handleEditorUpdate = async ({ json, html }) => {
-        if (!currentNote) return;
-
-        try {
-            await NotesService.updateNote(currentNote.id, {body: JSON.stringify(json)});
-        } catch (err) {
-            console.log(err);
         }
-    };
+    }, [notes]);
+
+    // Update currentNoteId in context AND localStorage whenever noteId changes
+    useEffect(() => {
+        if (currentNote?.id) {
+            setCurrentNoteId(currentNote.id);
+            localStorage.setItem('currentNote', currentNote.id);
+        }
+    }, [currentNote])
 
     if (!validId || !currentNote) {
         return <Blank />

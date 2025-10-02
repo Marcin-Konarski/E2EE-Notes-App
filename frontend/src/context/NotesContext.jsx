@@ -5,6 +5,7 @@ export const NotesContext = createContext(undefined);
 
 export const NotesProvider = ({ children }) => {
     const [notes, setNotes] = useState([]);
+    const [currentNoteId, setCurrentNoteId] = useState(null);
 
     const updateNotes = (notes) => {
         setNotes(notes);
@@ -22,7 +23,7 @@ export const NotesProvider = ({ children }) => {
         setNotes([]);
     }
 
-    const values = {notes, updateNotes, addNote, removeNote, clearNotes};
+    const values = {notes, updateNotes, addNote, removeNote, clearNotes, currentNoteId, setCurrentNoteId};
 
     return (
         <NotesContext.Provider value={values}>

@@ -1,14 +1,21 @@
 import { Link, Outlet } from "react-router-dom";
 
+import { useUserContext } from "@/hooks/useUserContext";
 import { useNotesContext } from "@/hooks/useNotesContext";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
 import { SimpleEditor } from '@/components/tiptap-templates/simple/simple-editor'
 import { Button } from "@/components/ui/Button";
+import EditorAnonymous from "@/pages/EditorAnonymous";
 import { cn } from "@/lib/utils";
 
 
 const Notes = () => {
+  const { user } = useUserContext();
   const { notes } = useNotesContext();
+
+  if (!user) {
+    return <EditorAnonymous />
+  }
 
   return (
     <>
@@ -41,16 +48,15 @@ const Notes = () => {
   );
 }
 
-export default Notes
-
-
-
 
 const ListItem = ({ item, onClick }) => {
   return (
     <Button onClick={onClick} variant="ghost" className={cn( "flex flex-row gap-2",
-            "w-full rounded-xs p-3 leading-none text-sm font-semibold justify-start" )} asChild >
+      "w-full rounded-xs p-3 leading-none text-sm font-semibold justify-start" )} asChild >
         <Link to={item.id}>{item.title}</Link>
     </Button>
   );
 }
+
+
+export default Notes

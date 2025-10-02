@@ -10,6 +10,7 @@ import EmailVerification from "@/pages/EmailVerification";
 import PageNotFound from "@/pages/PageNotFound";
 import Editor from "@/pages/Editor";
 import Blank from "@/pages/Blank";
+import EditorNew from "./pages/EditorNew";
 
 
 const router = createBrowserRouter([
@@ -26,7 +27,7 @@ const router = createBrowserRouter([
         { path: "verify/:activationKey", Component: EmailVerification},
         { path: "notes", Component: Notes, errorElement: Blank, children:
           [
-            { index: true, Component: Blank},
+            { index: true, Component: EditorNew},
             { path: ":noteId", Component: Editor},
           ]
         },

@@ -159,9 +159,28 @@ const RenderMobileMenuItem = (item) => {
           {item.title}
         </AccordionTrigger>
         <AccordionContent className="mt-2">
-          {item.items.map((subItem) => (
-            <SubMenuLink key={subItem.title} item={subItem} />
-          ))}
+          {item.items.map((subItem) => 
+            subItem.onClick ? (
+              <button
+                key={subItem.title}
+                onClick={subItem.onClick}
+                className={cn("hover:bg-muted hover:text-accent-foreground flex w-full select-none",
+                              "flex-row gap-4 rounded-sm p-3 leading-none no-underline outline-none transition-colors text-left")}
+              >
+                <div className="text-foreground">{subItem.icon}</div>
+                <div>
+                  <div className="text-sm font-semibold">{subItem.title}</div>
+                  {subItem.description && (
+                    <p className="text-muted-foreground text-sm leading-snug">
+                      {subItem.description}
+                    </p>
+                  )}
+                </div>
+              </button>
+            ) : (
+              <SubMenuLink key={subItem.title} item={subItem} />
+            )
+          )}
         </AccordionContent>
       </AccordionItem>
     );
@@ -175,6 +194,26 @@ const RenderMobileMenuItem = (item) => {
 };
 
 const SubMenuLink = ({ item }) => {
+  if (item.onClick) {
+    return (
+      <button
+        onClick={item.onClick}
+        className={cn("hover:bg-muted hover:text-accent-foreground flex min-w-80 select-none",
+                      "flex-row gap-4 rounded-sm p-3 leading-none no-underline outline-none transition-colors text-left w-full")}
+      >
+        <div className="text-foreground">{item.icon}</div>
+        <div>
+          <div className="text-sm font-semibold">{item.title}</div>
+          {item.description && (
+            <p className="text-muted-foreground text-sm leading-snug">
+              {item.description}
+            </p>
+          )}
+        </div>
+      </button>
+    );
+  }
+
   return (
     <Link to={item.url} className={cn("hover:bg-muted hover:text-accent-foreground flex min-w-80 select-none",
                     "flex-row gap-4 rounded-sm p-3 leading-none no-underline outline-none transition-colors")}>
