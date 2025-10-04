@@ -154,8 +154,7 @@ export function SimpleEditor({ onClose, content = '' }) {
   const [mobileView, setMobileView] = React.useState("main")
   const toolbarRef = React.useRef(null)
   const { user } = useUserContext();
-  const [noteBody, setNoteBody] = useState(content);
-  const { currentNote, setCurrentNote } = useNotesContext();
+  const { currentNoteId, updateNoteBody } = useNotesContext();
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -208,35 +207,36 @@ export function SimpleEditor({ onClose, content = '' }) {
     ],
     content: '',
     onUpdate({ editor }) {
-      // setCurrentNoteBody(editor.content)
-      editor.content = editor.getJSON();
+      if (currentNoteId) {
+        updateNoteBody(currentNoteId, editor.getJSON());
+      }
     }
   })
 
   useEffect(() => {
-    if (!editor || !content) return
+      if (!editor || !content) return
 
-    let parsedContent;
+      let parsedContent;
 
-    if (typeof content === 'string') {
-      try {
-        parsedContent = JSON.parse(content);
-        // setNoteBody(JSON.parse(content));
-      } catch (err) {
-        parsedContent = content;
-        // setNoteBody(content);
+      if (typeof content === 'string') {
+          try {
+              parsedContent = JSON.parse(content);
+          } catch (err) {
+              parsedContent = content;
+          }
+      } else {
+          parsedContent = content;
       }
-    }
 
-    editor.commands.setContent(parsedContent);
-    // editor.commands.setContent(noteBody);
-    // setCurrentNote(editor.content)
+      const currentContent = JSON.stringify(editor.getJSON());
+      const newContent = JSON.stringify(parsedContent);
+
+      // Only update if content is different to avoid unnecessary re-renders
+      if (currentContent !== newContent) {
+          editor.commands.setContent(parsedContent);
+      }
 
   }, [editor, content])
-
-  useEffect(() => {
-    console.log(currentNote);
-  }, [currentNote])
 
   const rect = useCursorVisibility({
     editor,

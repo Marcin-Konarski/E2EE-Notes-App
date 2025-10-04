@@ -5,7 +5,7 @@ import NotesService from '@/services/NotesService';
 const useNotes = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-    const { updateNotes, addNote, removeNote } = useNotesContext();
+    const { notes, updateNotes, addNote, removeNote } = useNotesContext();
 
 
     const fetchNotes = async () => {
@@ -42,6 +42,25 @@ const useNotes = () => {
         }
     };
 
+    const saveUpdateNote = async (noteId, json) => {
+        setError(null);
+
+        try {
+            const response = await NotesService.updateNote(noteId, json);
+            if (response.status === 200) {
+                const updatedNotes = notes.map(note => 
+                    note.id === noteId ? {...note, body: response.data.body} : note
+                );
+                updateNotes(updatedNotes);
+            }
+            return {success: true }
+        } catch (err) {
+            const errorMessage = err.response?.data?.message || 'Failed to update note';
+            setError(errorMessage);
+            return { success: false, error: errorMessage };
+        }
+    }
+
     const deleteNote = async (id) => {
         setIsLoading(true);
         setError(null);
@@ -60,7 +79,7 @@ const useNotes = () => {
     };
 
 
-    return { fetchNotes, createNote, deleteNote, isLoading, error }
+    return { fetchNotes, createNote, saveUpdateNote, deleteNote, isLoading, error }
 }
 
 export default useNotes

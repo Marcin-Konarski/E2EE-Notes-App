@@ -9,11 +9,11 @@ import { useNotesContext } from "@/hooks/useNotesContext";
 
 const NavBar = () => {
     const { user, logout } = useUserContext();
-    const { currentNoteId, setCurrentNoteId } = useNotesContext();
+    const { currentNoteId, setCurrentNoteId, storageNoteIdKey } = useNotesContext();
     const [notesNavBar, setNotesNavBar] = useState({ title: "Notes", url: "/notes", });
 
     useLayoutEffect(() => {
-        const savedNoteId = localStorage.getItem('currentNote');
+        const savedNoteId = localStorage.getItem(storageNoteIdKey);
         if (savedNoteId) {
             setCurrentNoteId(savedNoteId);
         }
@@ -21,10 +21,7 @@ const NavBar = () => {
 
     useEffect(() => {
         if (user) {
-            setNotesNavBar({
-                title: "Notes",
-                url: "/notes",
-                items: [
+            setNotesNavBar(c => ({...c, items: [
                     {
                         title: "New Note",
                         description: "Create new note",
@@ -38,11 +35,11 @@ const NavBar = () => {
                         url: currentNoteId ? `/notes/${currentNoteId}` : "/notes",
                     },
                 ],
-            })
+            }))
         } else {
-            setNotesNavBar({ title: "Notes", url: "/notes", })
+            setNotesNavBar(({items, ...c}) => c) // Remove `items` from notesNavBar
         }
-    }, [user]);
+    }, [user, currentNoteId]); // Update navbar also when currentNoteId changes
 
 
     const logo = {
@@ -58,6 +55,24 @@ const NavBar = () => {
             url: "/"
         },
         notesNavBar,
+        // {
+        //     title: "Notes",
+        //     url: "/notes",
+        //     items: [
+        //         {
+        //             title: "New Note",
+        //             description: "Create new note",
+        //             icon: <FilePlus className="size-5 shrink-0" />,
+        //             url: "/notes",
+        //         },
+        //         {
+        //             title: "Edit Notes",
+        //             description: "Edit last note",
+        //             icon: <Book className="size-5 shrink-0" />,
+        //             url: currentNoteId ? `/notes/${currentNoteId}` : "/notes",
+        //         },
+        //     ],
+        // },
         {
             title: "Ecnryption",
             url: "/keys",

@@ -62,11 +62,11 @@
     // scrollbar-width: none;
     // -ms-overflow-style: none;
 
-    // .simple-editor-wrapper-anonymous & {
-    //   justify-content: center;
-    //   max-width: 800px;
-    //   margin: 0 auto;
-    // }
+    .simple-editor-wrapper-anonymous & {
+      justify-content: center;
+      max-width: 800px;
+      margin: 0 auto;
+    }
 
     &::-webkit-scrollbar {
       display: none;

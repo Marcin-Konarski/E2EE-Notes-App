@@ -1,21 +1,26 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { useUserContext } from '@/hooks/useUserContext';
 import { useNotesContext } from '@/hooks/useNotesContext';
 import { SimpleEditor } from '@/components/tiptap-templates/simple/simple-editor';
 import Blank from '@/pages/Blank';
-import NotesService from '@/services/NotesService';
+import useNotes from '@/hooks/useNotes';
 
 
 const Editor = () => {
     const navigate = useNavigate();
     const { noteId } = useParams();
-    const { notes, setCurrentNoteId } = useNotesContext();
+    const { saveUpdateNote } = useNotes();
+    const { notes, getNoteBody, noteEdits, setCurrentNoteId, localStorageIdKey } = useNotesContext();
     const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(null);
+    const previousNoteIdRef = useRef(null);
+
 
     // Find current note based on id from URL based on clicked note to display according body
     const currentNote = useMemo(() => {
-        return notes.find(note => String(note.id) === String(noteId))
+        return notes.find(note => String(note.id) === String(noteId));
     }, [noteId, notes]);
 
     // Find if any note matches id from URL. If not don't display editor at all
@@ -23,20 +28,56 @@ const Editor = () => {
         return notes.some(note => String(note.id) === String(noteId))
     }, [noteId, notes])
 
-    // Set loading to false once we have notes so that note's body is correctly displayed in editor
+    // Get the current body (edited or original)
+    const currentBody = useMemo(() => {
+        if (currentNote?.id) {
+            return getNoteBody(currentNote.id);
+        }
+        return ''
+    }, [currentNote, getNoteBody])
+
+    // Set loading to false once we have notes so that note's body is correctly displayed in editor (waiting for backend to fetch notes before rendering)
     useEffect(() => {
         if (notes.length > 0) {
             setIsLoading(false);
         }
-    }, [notes]);
+    }, [notes, setCurrentNoteId]);
 
-    // Update currentNoteId in context AND localStorage whenever noteId changes
+    useEffect(() => {
+        const savePreviousNote = async () => {
+            const previousNoteId = previousNoteIdRef.current;
+
+            if (previousNoteId && previousNoteId !== currentNote?.id) { // If there was a previous note
+                const previousOriginalNote = notes.find(note => note.id === previousNoteId); // Get the state of previous note's original state (unedited, from backend)
+                const previousEditedNoteBody = JSON.stringify(noteEdits[previousNoteId]); // Get the edited body (content) state of previous note
+
+                // Check is note was edited at all (initial state is undefined thus one need to check for this as well)
+                if (previousOriginalNote && previousEditedNoteBody !== undefined && previousOriginalNote.body !== previousEditedNoteBody) {
+                    saveUpdateNote(previousNoteId, {title: previousOriginalNote.title, body: previousEditedNoteBody}) //?!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!? HERE TITLE IS OLD ONE!! TODO: IMPLEMENT TITLE EDITING FUNCTIONALITY
+                                    .catch(err => console.log('Background save failed: ', err));
+                }
+            }
+
+            // Update ref immediately - don't wait for save
+            if (currentNote?.id) {
+                previousNoteIdRef.current = currentNote.id;
+            }
+        }
+
+        if (currentNote?.id && previousNoteIdRef.current === null) {
+            previousNoteIdRef.current = currentNote.id; // Initialize ref on the first render
+        }
+
+        savePreviousNote();
+    }, [currentNote?.id, notes, noteEdits, saveUpdateNote])
+
+    // Update currentNoteId in context and localStorage whenever noteId changes
     useEffect(() => {
         if (currentNote?.id) {
             setCurrentNoteId(currentNote.id);
-            localStorage.setItem('currentNote', currentNote.id);
+            localStorage.setItem(localStorageIdKey, currentNote.id);
         }
-    }, [currentNote])
+    }, [currentNote]);
 
     if (!validId || !currentNote) {
         return <Blank />
@@ -46,7 +87,7 @@ const Editor = () => {
         {!isLoading && notes.length !== 0 &&
         <div className="simple-editor-wrapper h-full w-full flex flex-col items-start justify-start">
             <div className='flex-1 h-full w-full overflow-hidden'>
-                <SimpleEditor onClose={() => navigate('/notes')} content={currentNote && currentNote.body} />
+                <SimpleEditor key={currentNote.id} onClose={() => navigate('/notes')} content={currentBody} /> {/* `key` prop forces remount when switching notes */}
             </div>
         </div>}
     </>);

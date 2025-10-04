@@ -12,15 +12,15 @@ class NotesService {
 
     //! CONSIDER REMOVING THIS ENDPOINT!!!!!!!!!!!!!!!!!!!!!!
     fetchSpecificNotes(id) {
-        return apiClient.get(`/notes/notes/:${id}`);
+        return apiClient.get(`/notes/notes/:${id}/`);
     }
 
     updateNote(id, data) {
-        return apiClient.put(`/notes/notes/${id}`, data);
+        return apiClient.put(`/notes/notes/${id}/`, data);
     }
 
     deleteNote(id) {
-        return apiClient.delete(`/notes/notes/${id}`);
+        return apiClient.delete(`/notes/notes/${id}/`);
     }
 
 }
