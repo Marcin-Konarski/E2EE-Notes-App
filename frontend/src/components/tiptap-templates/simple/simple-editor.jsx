@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react"
 
 // --- Tiptap Core Extensions ---
@@ -71,6 +71,7 @@ import "@/components/tiptap-templates/simple/simple-editor.scss"
 import content from "@/components/tiptap-templates/simple/data/content.json"
 import { CloseButton } from '@/components/ui/Button'
 import { useUserContext } from '@/hooks/useUserContext'
+import { useNotesContext } from '@/hooks/useNotesContext'
 
 const MainToolbarContent = ({ onHighlighterClick, onLinkClick, isMobile, onClose }) => {
   return (
@@ -153,6 +154,8 @@ export function SimpleEditor({ onClose, content = '' }) {
   const [mobileView, setMobileView] = React.useState("main")
   const toolbarRef = React.useRef(null)
   const { user } = useUserContext();
+  const [noteBody, setNoteBody] = useState(content);
+  const { currentNote, setCurrentNote } = useNotesContext();
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -166,6 +169,7 @@ export function SimpleEditor({ onClose, content = '' }) {
         class: "simple-editor",
       },
     },
+    autofocus: 'end',
     extensions: [
       StarterKit.configure({
         horizontalRule: false,
@@ -203,6 +207,10 @@ export function SimpleEditor({ onClose, content = '' }) {
       })
     ],
     content: '',
+    onUpdate({ editor }) {
+      // setCurrentNoteBody(editor.content)
+      editor.content = editor.getJSON();
+    }
   })
 
   useEffect(() => {
@@ -213,14 +221,22 @@ export function SimpleEditor({ onClose, content = '' }) {
     if (typeof content === 'string') {
       try {
         parsedContent = JSON.parse(content);
+        // setNoteBody(JSON.parse(content));
       } catch (err) {
         parsedContent = content;
+        // setNoteBody(content);
       }
     }
 
     editor.commands.setContent(parsedContent);
+    // editor.commands.setContent(noteBody);
+    // setCurrentNote(editor.content)
 
   }, [editor, content])
+
+  useEffect(() => {
+    console.log(currentNote);
+  }, [currentNote])
 
   const rect = useCursorVisibility({
     editor,

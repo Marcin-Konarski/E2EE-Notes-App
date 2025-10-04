@@ -3,12 +3,13 @@ import { useUserContext } from './useUserContext';
 import EmailService from '@/services/EmailService';
 import { setAccessToken } from '@/services/ApiClient';
 import UserService from '@/services/UserService';
+import useNotes from '@/hooks/useNotes';
 
 const useAuth = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const { user, login, logout } = useUserContext();
-
+    const { fetchNotes } = useNotes();
 
     const register = async (data) => {
         logout(); // If some user is logged in. Log them out
@@ -61,6 +62,7 @@ const useAuth = () => {
             setAccessToken(tokenResponse.data.access);
             const userResponse = await UserService.getUserDetails();
             login(userResponse.data);
+            fetchNotes(); // Upon login fetch user's notes            
 
             return {success: true}
         } catch (err) {

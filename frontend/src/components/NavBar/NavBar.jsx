@@ -1,4 +1,4 @@
-import { useLayoutEffect } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { Book, Sunset, Trees, Key, FilePlus, Settings, LogOut} from "lucide-react";
 
 import ArxLogo from '@/assets/logo.svg'
@@ -10,6 +10,7 @@ import { useNotesContext } from "@/hooks/useNotesContext";
 const NavBar = () => {
     const { user, logout } = useUserContext();
     const { currentNoteId, setCurrentNoteId } = useNotesContext();
+    const [notesNavBar, setNotesNavBar] = useState({ title: "Notes", url: "/notes", });
 
     useLayoutEffect(() => {
         const savedNoteId = localStorage.getItem('currentNote');
@@ -17,6 +18,32 @@ const NavBar = () => {
             setCurrentNoteId(savedNoteId);
         }
     }, []);
+
+    useEffect(() => {
+        if (user) {
+            setNotesNavBar({
+                title: "Notes",
+                url: "/notes",
+                items: [
+                    {
+                        title: "New Note",
+                        description: "Create new note",
+                        icon: <FilePlus className="size-5 shrink-0" />,
+                        url: "/notes",
+                    },
+                    {
+                        title: "Edit Notes",
+                        description: "Edit last note",
+                        icon: <Book className="size-5 shrink-0" />,
+                        url: currentNoteId ? `/notes/${currentNoteId}` : "/notes",
+                    },
+                ],
+            })
+        } else {
+            setNotesNavBar({ title: "Notes", url: "/notes", })
+        }
+    }, [user]);
+
 
     const logo = {
         url: "/",
@@ -30,24 +57,7 @@ const NavBar = () => {
             title: "Home",
             url: "/"
         },
-        {
-            title: "Notes",
-            url: "/notes",
-            items: [
-                {
-                    title: "New Note",
-                    description: "Create new note",
-                    icon: <FilePlus className="size-5 shrink-0" />,
-                    url: "/notes",
-                },
-                {
-                    title: "Edit Notes",
-                    description: "Edit last note",
-                    icon: <Book className="size-5 shrink-0" />,
-                    url: currentNoteId ? `/notes/${currentNoteId}` : "/notes",
-                },
-            ],
-        },
+        notesNavBar,
         {
             title: "Ecnryption",
             url: "/keys",
