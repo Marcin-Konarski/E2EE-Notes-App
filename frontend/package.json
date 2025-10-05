@@ -45,6 +45,7 @@
     "react-router-dom": "^7.9.0",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.13",
+    "use-debounce": "^10.0.6",
     "zod": "^4.1.8"
   },
   "devDependencies": {

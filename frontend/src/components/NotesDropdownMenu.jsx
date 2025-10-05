@@ -53,7 +53,7 @@ const NotesDropdownMenu = ({ currentNote, onRename }) => {
           <DropdownMenuItem className='cursor-pointer text-destructive focus:text-destructive' onClick={() => { setShowDeleteDialog(true) }}>
             <span className="flex items-center justify-between w-full">
               Delete
-              <Trash2 className="size-4" />
+              <Trash2 className="size-4 text-destructive" />
             </span>
           </DropdownMenuItem>
         </DropdownMenuContent>

@@ -1,17 +1,18 @@
 import { Link, Outlet } from "react-router-dom";
 import { useState } from "react";
 
+import useNotes from "@/hooks/useNotes";
 import { useUserContext } from "@/hooks/useUserContext";
 import { useNotesContext } from "@/hooks/useNotesContext";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
 import { SimpleEditor } from '@/components/tiptap-templates/simple/simple-editor'
+import NotesDropdownMenu from "@/components/NotesDropdownMenu";
+import DisappearingAlert from "@/components/DisappearingAlert";
+import { Input } from "@/components/tiptap-ui-primitive/input";
 import { Button } from "@/components/ui/Button";
 import EditorAnonymous from "@/pages/EditorAnonymous";
+import EditorNew from "@/pages/EditorNew";
 import { cn } from "@/lib/utils";
-import NotesDropdownMenu from "@/components/NotesDropdownMenu";
-import useNotes from "@/hooks/useNotes";
-import { Input } from "@/components/tiptap-ui-primitive/input";
-import DisappearingAlert from "@/components/DisappearingAlert";
 
 
 const Notes = () => {

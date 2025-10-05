@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react"
 
 // --- Tiptap Core Extensions ---
@@ -73,6 +73,9 @@ import { IconButton } from '@/components/ui/Button'
 import { useUserContext } from '@/hooks/useUserContext'
 import { useNotesContext } from '@/hooks/useNotesContext'
 import { XIcon } from 'lucide-react'
+
+// --- Debounce library to improve performace of this editor ---
+import { useDebouncedCallback } from 'use-debounce'
 
 const MainToolbarContent = ({ onHighlighterClick, onLinkClick, isMobile, onClose }) => {
   return (
@@ -156,10 +159,16 @@ const MobileToolbarContent = ({ type, onBack }) => (
 export function SimpleEditor({ onClose, content = '' }) {
   const isMobile = useIsMobile()
   const { height } = useWindowSize()
-  const [mobileView, setMobileView] = React.useState("main")
-  const toolbarRef = React.useRef(null)
   const { user } = useUserContext();
   const { currentNoteId, updateNoteBody } = useNotesContext();
+  const [mobileView, setMobileView] = useState("main")
+  const toolbarRef = useRef(null)
+  const contentSetRef = useRef(null);
+
+  // Functiona to update state on debounce (after some period) instead on every single character chagne - this should vastly improve performance
+  const debounceUpdate = useDebouncedCallback((content) => {
+    updateNoteBody(currentNoteId, content);
+  }, 300);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -213,33 +222,30 @@ export function SimpleEditor({ onClose, content = '' }) {
     content: '',
     onUpdate({ editor }) {
       if (currentNoteId) {
-        updateNoteBody(currentNoteId, editor.getJSON());
+        // updateNoteBody(currentNoteId, editor.getJSON());
+        debounceUpdate(editor.getJSON());
       }
     }
   })
 
   useEffect(() => {
-      if (!editor || !content) return
+    if (!editor || !content) return
 
+    if (contentSetRef.current !== content) {
       let parsedContent;
-
       if (typeof content === 'string') {
-          try {
-              parsedContent = JSON.parse(content);
-          } catch (err) {
-              parsedContent = content;
-          }
+        try {
+          parsedContent = JSON.parse(content);
+        } catch (err) {
+          parsedContent = content;
+        }
       } else {
           parsedContent = content;
       }
 
-      const currentContent = JSON.stringify(editor.getJSON());
-      const newContent = JSON.stringify(parsedContent);
-
-      // Only update if content is different to avoid unnecessary re-renders
-      if (currentContent !== newContent) {
-          editor.commands.setContent(parsedContent);
-      }
+      editor.commands.setContent(parsedContent);
+      contentSetRef.current = content;
+    }
 
   }, [editor, content])
 

@@ -1,11 +1,10 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { useUserContext } from '@/hooks/useUserContext';
+import useNotes from '@/hooks/useNotes';
 import { useNotesContext } from '@/hooks/useNotesContext';
 import { SimpleEditor } from '@/components/tiptap-templates/simple/simple-editor';
 import Blank from '@/pages/Blank';
-import useNotes from '@/hooks/useNotes';
 
 
 const Editor = () => {
@@ -14,7 +13,6 @@ const Editor = () => {
     const { saveUpdateNote } = useNotes();
     const { notes, getNoteBody, noteEdits, setCurrentNoteId, localStorageIdKey } = useNotesContext();
     const [isLoading, setIsLoading] = useState(true);
-    const [isSaving, setIsSaving] = useState(null);
     const previousNoteIdRef = useRef(null);
 
 
@@ -87,7 +85,7 @@ const Editor = () => {
         {!isLoading && notes.length !== 0 &&
         <div className="simple-editor-wrapper h-full w-full flex flex-col items-start justify-start">
             <div className='flex-1 h-full w-full overflow-hidden'>
-                <SimpleEditor key={currentNote.id} onClose={() => navigate('/notes')} content={currentBody} /> {/* `key` prop forces remount when switching notes */}
+                <SimpleEditor onClose={() => navigate('/notes')} content={currentBody} />
             </div>
         </div>}
     </>);

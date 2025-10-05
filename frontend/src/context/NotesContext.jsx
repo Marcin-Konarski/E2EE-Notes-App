@@ -7,6 +7,7 @@ export const NotesProvider = ({ children }) => {
     const [notes, setNotes] = useState([]);
     const [currentNoteId, setCurrentNoteId] = useState(null);
     const [noteEdits, setNoteEdits] = useState({});
+    const [newNote, setNewNote] = useState({id: 1, title: 'New Note', body: ''});
     const storageNoteIdKey = 'currentNoteId';
 
     const updateNotes = (notes) => {
@@ -31,20 +32,35 @@ export const NotesProvider = ({ children }) => {
     }, [])
 
     // Get the current body for a note (edited version or original from backend)
-    const getNoteBody = useCallback((noteId) => {
+    const getNoteBody = (noteId) => {
         if (noteEdits[noteId] !== undefined) {
             return noteEdits[noteId]; // Return the edited version if it exists, otherwise return the original
         }
         const note = notes.find(note => note.id === noteId);
         return note?. body || '';
-    }, [notes, noteEdits])
+    }
 
     const clearNotes = () => {
         setNotes([]);
         setNoteEdits({});
     }
 
-    const values = {notes, updateNotes, addNote, removeNote, updateNoteBody, getNoteBody, clearNotes, noteEdits, setNoteEdits, currentNoteId, setCurrentNoteId, storageNoteIdKey};
+    const values = {
+        notes,
+        updateNotes,
+        addNote,
+        removeNote,
+        updateNoteBody,
+        getNoteBody,
+        clearNotes,
+        noteEdits,
+        setNoteEdits,
+        currentNoteId,
+        setCurrentNoteId,
+        newNote,
+        setNewNote,
+        storageNoteIdKey
+    };
 
     return (
         <NotesContext.Provider value={values}>

@@ -29,6 +29,7 @@ const router = createBrowserRouter([
           [
             { index: true, Component: EditorNew},
             { path: ":noteId", Component: Editor},
+            // { index: "new", Component: EditorNew},
           ]
         },
     ]
