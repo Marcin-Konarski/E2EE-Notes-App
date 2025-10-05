@@ -5,12 +5,26 @@ import ArxLogo from '@/assets/logo.svg'
 import { NavBarComponent } from '@/components/NavBar/NavBarComponent'
 import { useUserContext } from '@/hooks/useUserContext';
 import { useNotesContext } from "@/hooks/useNotesContext";
+import useNotes from "@/hooks/useNotes";
+import { useNavigate } from "react-router-dom";
 
 
 const NavBar = () => {
+    const navigate = useNavigate();
     const { user, logout } = useUserContext();
     const { currentNoteId, setCurrentNoteId, storageNoteIdKey } = useNotesContext();
     const [notesNavBar, setNotesNavBar] = useState({ title: "Notes", url: "/notes", });
+    const { createNote } = useNotes();
+
+    const handleNewNoteCreation = async () => {
+        const status = await createNote({title: 'New Note', body: ''});
+        if (status.success) {
+            console.log(status.data);
+            navigate(`/notes/${status.data.id}`);
+        } else {
+            console.log(status.error);
+        }
+    }
 
     useLayoutEffect(() => {
         const savedNoteId = localStorage.getItem(storageNoteIdKey);
@@ -24,13 +38,15 @@ const NavBar = () => {
             setNotesNavBar(c => ({...c, items: [
                     {
                         title: "New Note",
-                        description: "Create new note",
+                        // description: "Create new note",
                         icon: <FilePlus className="size-5 shrink-0" />,
-                        url: "/notes",
+                        url: "/notes/new",
+                        isButton: true,
+                        function: handleNewNoteCreation,
                     },
                     {
                         title: "Edit Notes",
-                        description: "Edit last note",
+                        // description: "Edit last note",
                         icon: <Book className="size-5 shrink-0" />,
                         url: currentNoteId ? `/notes/${currentNoteId}` : "/notes",
                     },
@@ -55,24 +71,6 @@ const NavBar = () => {
             url: "/"
         },
         notesNavBar,
-        // {
-        //     title: "Notes",
-        //     url: "/notes",
-        //     items: [
-        //         {
-        //             title: "New Note",
-        //             description: "Create new note",
-        //             icon: <FilePlus className="size-5 shrink-0" />,
-        //             url: "/notes",
-        //         },
-        //         {
-        //             title: "Edit Notes",
-        //             description: "Edit last note",
-        //             icon: <Book className="size-5 shrink-0" />,
-        //             url: currentNoteId ? `/notes/${currentNoteId}` : "/notes",
-        //         },
-        //     ],
-        // },
         {
             title: "Ecnryption",
             url: "/keys",
@@ -127,7 +125,7 @@ const NavBar = () => {
                     titleMobile: "Logout",
                     icon: <LogOut className="size-5 shrink-0" />,
                     url: "/login",
-                    isLogOut: true,
+                    isButton: true,
                     function: logout,
                     variant: "outline"
                 },

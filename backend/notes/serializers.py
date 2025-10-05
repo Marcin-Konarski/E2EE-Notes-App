@@ -15,11 +15,11 @@ class NoteItemSerializer(serializers.ModelSerializer):
 
 
 class BaseNoteSerializer(serializers.ModelSerializer):
-    body = serializers.CharField(required=True, allow_blank=False)
+    body = serializers.CharField(required=True, allow_blank=True)
 
     def validate_body(self, value):
-        if not value:
-            raise serializers.ValidationError("Body is required and cannot be empty.")
+        # if not value:
+            # raise serializers.ValidationError("Body is required.")
         return value.encode(settings.DEFAULT_ENCODING)
 
     def to_representation(self, instance):
@@ -33,7 +33,7 @@ class BaseNoteSerializer(serializers.ModelSerializer):
 class NotesSerializer(BaseNoteSerializer):
     noteitem = NoteItemSerializer(many=True, required=False)
     encryption_key = serializers.CharField(write_only=True, required=False)
-    body = serializers.CharField(required=True, allow_blank=False)
+    body = serializers.CharField(required=True, allow_blank=True)
 
     class Meta:
         model = Note
@@ -109,7 +109,7 @@ class NoteMeSerializer(serializers.ModelSerializer):
 
 class NotesDetailSerializer(BaseNoteSerializer):
     encryption_key = serializers.CharField(write_only=True, required=False)
-    body = serializers.CharField(required=True, allow_blank=False)
+    body = serializers.CharField(required=True, allow_blank=True)
     class Meta:
         model = Note
         fields = ['id', 'title', 'body', 'is_encrypted', 'created_at', 'encryption_key', 'noteitem']
@@ -144,7 +144,7 @@ class UserKeyInfoSerializer(serializers.Serializer):
 
 
 class ChangeEncryptionSerializer(serializers.Serializer):
-    new_body = serializers.CharField(required=True, allow_blank=False)
+    new_body = serializers.CharField(required=True, allow_blank=True)
     is_encrypted = serializers.BooleanField(required=True)
     keys = serializers.ListField(
         child=serializers.DictField(), 

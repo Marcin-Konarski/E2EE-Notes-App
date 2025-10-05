@@ -31,10 +31,12 @@ const useNotes = () => {
 
         try {
             const response = await NotesService.createNote(data);
+            console.log(response)
             addNote(response.data);
             return { success: true, data: response.data };
         } catch (err) {
             const errorMessage = err.response?.data?.message || 'Failed to create note';
+            console.log(err)
             setError(errorMessage);
             return { success: false, error: errorMessage };
         } finally {

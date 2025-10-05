@@ -27,9 +27,9 @@ const router = createBrowserRouter([
         { path: "verify/:activationKey", Component: EmailVerification},
         { path: "notes", Component: Notes, errorElement: Blank, children:
           [
-            { index: true, Component: EditorNew},
+            { index: true, Component: Blank},
             { path: ":noteId", Component: Editor},
-            // { index: "new", Component: EditorNew},
+            { path: "new", Component: EditorNew},
           ]
         },
     ]

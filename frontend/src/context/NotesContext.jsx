@@ -7,7 +7,7 @@ export const NotesProvider = ({ children }) => {
     const [notes, setNotes] = useState([]);
     const [currentNoteId, setCurrentNoteId] = useState(null);
     const [noteEdits, setNoteEdits] = useState({});
-    const [newNote, setNewNote] = useState({id: 1, title: 'New Note', body: ''});
+    // const [newNote, setNewNote] = useState({title: 'New Note', body: ''});
     const storageNoteIdKey = 'currentNoteId';
 
     const updateNotes = (notes) => {
@@ -57,8 +57,8 @@ export const NotesProvider = ({ children }) => {
         setNoteEdits,
         currentNoteId,
         setCurrentNoteId,
-        newNote,
-        setNewNote,
+        // newNote,
+        // setNewNote,
         storageNoteIdKey
     };
 

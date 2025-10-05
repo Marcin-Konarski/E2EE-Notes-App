@@ -119,14 +119,13 @@ const RenderMenuItem = (item) => {
         <NavigationMenuTrigger>{item.title}</NavigationMenuTrigger>
         <NavigationMenuContent className="bg-popover text-popover-foreground">
           {item.items.map((subItem) =>
-            subItem.isLogOut ? (
-              <NavigationMenuLink asChild key={subItem.title}>
-                <Button onClick={subItem.function} variant="ghost" className={cn( "flex flex-row gap-4",
-                          "w-full rounded-xs p-3 leading-none text-sm font-semibold justify-start" )} >
-                  <span className="text-foreground">{subItem.icon}</span>
-                  <span>{subItem.title}</span>
-                </Button>
-              </NavigationMenuLink>
+            subItem.isButton ? (
+              <Button key={subItem.title} onClick={subItem.function} variant="ghost" 
+                className={cn("flex flex-row gap-4 !py-6 w-full rounded-sm p-3",
+                              "leading-none text-sm font-semibold justify-start")}>
+                <span className="text-foreground">{subItem.icon}</span>
+                <span>{subItem.title}</span>
+              </Button>
             ) : (
               <SubMenuLink key={subItem.title} item={subItem} />
             )
@@ -138,13 +137,10 @@ const RenderMenuItem = (item) => {
 
   return (
     <NavigationMenuItem key={item.title}>
-      <NavigationMenuLink
-        asChild
-        className={cn(
+      <NavigationMenuLink asChild className={cn(
           "bg-background hover:bg-muted hover:text-accent-foreground group inline-flex",
-          "h-10 w-max items-center justify-center rounded-xs px-4 py-2 text-sm font-medium transition-colors"
-        )}
-      >
+          "h-10 w-max items-center justify-center rounded-sm px-4 py-2 text-sm font-medium transition-colors"
+        )}>
         <Link to={item.url}>{item.title}</Link>
       </NavigationMenuLink>
     </NavigationMenuItem>

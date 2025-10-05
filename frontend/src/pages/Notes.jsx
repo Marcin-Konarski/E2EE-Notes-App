@@ -1,5 +1,5 @@
-import { Link, Outlet } from "react-router-dom";
-import { useState } from "react";
+import { Link, Outlet, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 import useNotes from "@/hooks/useNotes";
 import { useUserContext } from "@/hooks/useUserContext";
@@ -11,11 +11,11 @@ import DisappearingAlert from "@/components/DisappearingAlert";
 import { Input } from "@/components/tiptap-ui-primitive/input";
 import { Button } from "@/components/ui/Button";
 import EditorAnonymous from "@/pages/EditorAnonymous";
-import EditorNew from "@/pages/EditorNew";
 import { cn } from "@/lib/utils";
 
 
 const Notes = () => {
+  const newNotePage = useLocation();
   const { user } = useUserContext();
   const { notes } = useNotesContext();
 
@@ -33,7 +33,7 @@ const Notes = () => {
       {/* Desktop Layout */}
       <div className="hidden lg:block h-full w-full">
         <ResizablePanelGroup direction="horizontal" className="w-full h-full border-t-1">
-          <ResizablePanel defaultSize={15} minSize={12} maxSize={30} className='min-w-56'>
+          <ResizablePanel defaultSize={12} minSize={10} maxSize={30} className='min-w-56'>
             <div className="flex w-full h-full items-start justify-start p-4">
               <div className='flex flex-col w-full gap-0'>
                 {notes.map(note => (
@@ -43,7 +43,7 @@ const Notes = () => {
             </div>
           </ResizablePanel>
           <ResizableHandle withHandle />
-          <ResizablePanel defaultSize={85}>
+          <ResizablePanel defaultSize={88}>
             <Outlet />
           </ResizablePanel>
         </ResizablePanelGroup>
@@ -104,7 +104,7 @@ const ListItem = ({ item }) => {
           "leading-none text-sm font-medium justify-between hover:bg-accent transition-colors"
         )} asChild>
         <div className="w-full flex items-center justify-between">
-          <Link to={item.id} className='flex-1 flex items-center min-w-0'>
+          <Link to={item?.id || '/notes/new'} className='flex-1 flex items-center min-w-0'>
             <span className="truncate">{item.title}</span>
           </Link>
           <div className={cn("flex-shrink-0 transition-opacity",isHovered ? "opacity-100" : "opacity-0")} onClick={(e) => e.stopPropagation()}>

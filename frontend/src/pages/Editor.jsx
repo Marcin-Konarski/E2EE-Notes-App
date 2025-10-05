@@ -11,7 +11,7 @@ const Editor = () => {
     const navigate = useNavigate();
     const { noteId } = useParams();
     const { saveUpdateNote } = useNotes();
-    const { notes, getNoteBody, noteEdits, setCurrentNoteId, localStorageIdKey } = useNotesContext();
+    const { notes, getNoteBody, noteEdits, setCurrentNoteId, storageNoteIdKey } = useNotesContext();
     const [isLoading, setIsLoading] = useState(true);
     const previousNoteIdRef = useRef(null);
 
@@ -73,7 +73,7 @@ const Editor = () => {
     useEffect(() => {
         if (currentNote?.id) {
             setCurrentNoteId(currentNote.id);
-            localStorage.setItem(localStorageIdKey, currentNote.id);
+            localStorage.setItem(storageNoteIdKey, currentNote.id);
         }
     }, [currentNote]);
 
