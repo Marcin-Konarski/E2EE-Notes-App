@@ -3,10 +3,9 @@ import { Slot } from "@radix-ui/react-slot"
 import { cva } from "class-variance-authority";
 
 import { cn } from "@/lib/utils"
-import { XIcon } from "lucide-react";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xs text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xs text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none",
   {
     variants: {
       variant: {
@@ -30,29 +29,33 @@ const buttonVariants = cva(
         lg: "h-10 rounded-xs px-6 has-[>svg]:px-4",
         icon: "size-9",
       },
+      ring: {
+        true: "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+        false: "",
+      },
     },
     defaultVariants: {
       variant: "default",
       size: "default",
+      ring: false,
     },
   }
 )
 
-function Button({ className, variant, size, asChild = false, ...props }) {
+function Button({ className, variant, size, ring, asChild = false, ...props }) {
   const Comp = asChild ? Slot : "button"
 
   return (
-    <Comp data-slot="button" className={cn(buttonVariants({ variant, size, className }))} {...props} />
+    <Comp data-slot="button" className={cn(buttonVariants({ variant, size, ring, className }))} {...props} />
   );
 }
 
-function CloseButton({ onClick, className }) {
+function IconButton({ onClick, className, children }) {
   return (
     <Button variant='ghost' onClick={onClick} className={`!p-0 size-6 ${className}`}>
-        <XIcon className="size-5" />
-        <span className='sr-only'>Close</span>
+        {children}
     </Button>
   );
 }
 
-export { Button, buttonVariants, CloseButton }
+export { Button, buttonVariants, IconButton }

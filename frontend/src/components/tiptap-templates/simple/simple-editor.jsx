@@ -69,9 +69,10 @@ import { handleImageUpload, MAX_FILE_SIZE } from "@/lib/tiptap-utils"
 import "@/components/tiptap-templates/simple/simple-editor.scss"
 
 import content from "@/components/tiptap-templates/simple/data/content.json"
-import { CloseButton } from '@/components/ui/Button'
+import { IconButton } from '@/components/ui/Button'
 import { useUserContext } from '@/hooks/useUserContext'
 import { useNotesContext } from '@/hooks/useNotesContext'
+import { XIcon } from 'lucide-react'
 
 const MainToolbarContent = ({ onHighlighterClick, onLinkClick, isMobile, onClose }) => {
   return (
@@ -119,7 +120,11 @@ const MainToolbarContent = ({ onHighlighterClick, onLinkClick, isMobile, onClose
         <ImageUploadButton text="Add" />
       </ToolbarGroup>
       <Spacer />
-        {!isMobile && onClose && <CloseButton className='mx-8 rounded-xl size-8' onClick={onClose} />} {/* Close Button only on desktop menu */}
+        {!isMobile && onClose && // Close Button only on desktop menu and only for existing note
+            <IconButton className='mx-8 rounded-xl size-8' onClick={onClose}>
+                <XIcon className='size-5' />
+                <span className='sr-only'>Close</span> 
+            </IconButton>}
       {isMobile && <ToolbarSeparator />}
     </>
   );

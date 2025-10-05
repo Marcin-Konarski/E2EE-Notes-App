@@ -47,9 +47,10 @@ const useNotes = () => {
 
         try {
             const response = await NotesService.updateNote(noteId, json);
+            console.log(response)
             if (response.status === 200) {
                 const updatedNotes = notes.map(note => 
-                    note.id === noteId ? {...note, body: response.data.body} : note
+                    note.id === noteId ? {...note, body: response.data.body, title: response.data.title} : note
                 );
                 updateNotes(updatedNotes);
             }
