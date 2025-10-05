@@ -1,42 +1,92 @@
-import React from 'react'
-import { EllipsisVertical, SquarePen, Trash2 } from 'lucide-react'
+import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { EllipsisVertical, SquarePen, Trash2, AlertTriangle } from 'lucide-react'
+
 import { Button } from '@/components/ui/Button'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, } from './ui/DropDownMenu'
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/DropDownMenu'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, } from "@/components/ui/dialog"
+import useNotes from '@/hooks/useNotes'
 
-const NotesDropdownMenu = ({ currentNote }) => {
+const NotesDropdownMenu = ({ currentNote, onRename }) => {
+  const navigate = useNavigate();
+  const { deleteNote } = useNotes();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
 
-    const handleRename = (currentNote) => {
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    setDeleteError(null);
 
+    const result = await deleteNote(currentNote.id);
+    
+    if (result.success) {
+      setShowDeleteDialog(false);
+      navigate('/notes');
+    } else {
+      setDeleteError(result.error);
+      setIsDeleting(false);
     }
+  };
 
-    const handleDelete = (currentNote) => {
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button className='p-0 m-0 size-7 rounded-md hover:bg-muted' variant='ghost'>
+            <EllipsisVertical className="size-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-48" align="end">
+          <DropdownMenuGroup>
+            <DropdownMenuItem className='cursor-pointer' onClick={() => { onRename() }} >
+              <span className="flex items-center justify-between w-full">
+                Rename
+                <SquarePen className="size-4" />
+              </span>
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
 
-    }
+          <DropdownMenuSeparator />
 
-    return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button className='p-0 m-0 size-7 rounded-2xl hover:!bg-transparent hover:!text-inherit' variant='ghost'>
-                        <EllipsisVertical className="size-4" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="start">
+          <DropdownMenuItem className='cursor-pointer text-destructive focus:text-destructive' onClick={() => { setShowDeleteDialog(true) }}>
+            <span className="flex items-center justify-between w-full">
+              Delete
+              <Trash2 className="size-4" />
+            </span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-                <DropdownMenuGroup>
-                    <DropdownMenuItem className='w-full justify-between' asChild>
-                        <Button variant="ghost" ring={false} className="w-full h-full justify-between" onClick={handleRename}>Rename<SquarePen /></Button>
-                    </DropdownMenuItem>
-                </DropdownMenuGroup>
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Note</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{currentNote.title}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
 
-                <DropdownMenuSeparator />
+          {deleteError && (
+            <Alert variant="destructive">
+              <AlertTriangle className="size-4" />
+              <AlertDescription>{deleteError}</AlertDescription>
+            </Alert>
+          )}
 
-                <DropdownMenuItem asChild>
-                    <Button variant="ghost" ring={false} className="w-full h-full justify-between text-destructive" onClick={handleDelete}>Delete<Trash2 /></Button>
-                </DropdownMenuItem>
-
-            </DropdownMenuContent>
-        </DropdownMenu>
-    );
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)} disabled={isDeleting}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
 }
 
 export default NotesDropdownMenu

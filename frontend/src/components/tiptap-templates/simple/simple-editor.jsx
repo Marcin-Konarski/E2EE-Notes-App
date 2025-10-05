@@ -116,9 +116,9 @@ const MainToolbarContent = ({ onHighlighterClick, onLinkClick, isMobile, onClose
         <TextAlignButton align="justify" />
       </ToolbarGroup>
       <ToolbarSeparator />
-      <ToolbarGroup>
+      {/* <ToolbarGroup>
         <ImageUploadButton text="Add" />
-      </ToolbarGroup>
+      </ToolbarGroup> */}
       <Spacer />
         {!isMobile && onClose && // Close Button only on desktop menu and only for existing note
             <IconButton className='mx-8 rounded-xl size-8' onClick={onClose}>
@@ -192,13 +192,13 @@ export function SimpleEditor({ onClose, content = '' }) {
       Superscript,
       Subscript,
       Selection,
-      ImageUploadNode.configure({
-        accept: "image/*",
-        maxSize: MAX_FILE_SIZE,
-        limit: 3,
-        upload: handleImageUpload,
-        onError: (error) => console.error("Upload failed:", error),
-      }),
+      // ImageUploadNode.configure({
+      //   accept: "image/*",
+      //   maxSize: MAX_FILE_SIZE,
+      //   limit: 3,
+      //   upload: handleImageUpload,
+      //   onError: (error) => console.error("Upload failed:", error),
+      // }),
       Placeholder.configure({
         placeholder: ({ editor }) => {
           const isEmpty = editor.isEmpty;

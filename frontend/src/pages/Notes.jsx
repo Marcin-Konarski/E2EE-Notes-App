@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/Button";
 import EditorAnonymous from "@/pages/EditorAnonymous";
 import { cn } from "@/lib/utils";
 import NotesDropdownMenu from "@/components/NotesDropdownMenu";
+import useNotes from "@/hooks/useNotes";
+import { Input } from "@/components/tiptap-ui-primitive/input";
+import DisappearingAlert from "@/components/DisappearingAlert";
 
 
 const Notes = () => {
@@ -50,9 +53,51 @@ const Notes = () => {
 
 
 const ListItem = ({ item }) => {
+  const { saveUpdateNote } = useNotes();
   const [isHovered, setIsHovered] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [newTitle, setNewTitle] = useState(item.title);
+  const [renameError, setRenameError] = useState(null);
 
-  return (
+  const handleRename = async () => {
+    if (!newTitle.trim() || newTitle === item.title) {
+      setIsRenaming(false);
+      setNewTitle(item.title);
+      return;
+    }
+
+    const status = await saveUpdateNote(item.id, { title: newTitle, body: item.body });
+    if (status.error) {
+      setRenameError(status.error);
+      setNewTitle(item.title);
+    }
+    setIsRenaming(false);
+  };
+
+  if (isRenaming) {
+    return (
+      <div className="w-full px-3 border-2 rounded-sm">
+        <Input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} onBlur={handleRename}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleRename();
+            } else if (e.key === 'Escape') {
+              setIsRenaming(false);
+              setNewTitle(item.title);
+            }
+          }}
+          autoFocus onFocus={(e) => e.target.select()} className="h-9 text-sm"
+        />
+      </div>
+    );
+  }
+
+  return (<>
+
+    {renameError && <div className='absolute z-20'>
+      <DisappearingAlert title="Oops!" time="5s" variant="destructive" color="red-500">{renameError}</DisappearingAlert>
+    </div>}
+
     <div className="relative w-full" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
       <Button variant="ghost" className={cn("flex flex-row gap-2 w-full rounded-md p-3",
           "leading-none text-sm font-medium justify-between hover:bg-accent transition-colors"
@@ -62,12 +107,12 @@ const ListItem = ({ item }) => {
             <span className="truncate">{item.title}</span>
           </Link>
           <div className={cn("flex-shrink-0 transition-opacity",isHovered ? "opacity-100" : "opacity-0")} onClick={(e) => e.stopPropagation()}>
-            <NotesDropdownMenu currentNote={item} />
+            <NotesDropdownMenu currentNote={item} onRename={() => {setIsRenaming(true); setRenameError(null);}} />
           </div>
         </div>
       </Button>
     </div>
-  );
+  </>);
 }
 
 
