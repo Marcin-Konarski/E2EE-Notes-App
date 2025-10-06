@@ -41,11 +41,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework_simplejwt.token_blacklist', # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/blacklist_app.html
+    'rest_framework_simplejwt.token_blacklist',                             # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/blacklist_app.html
     'corsheaders', # pip install django-cors-headers
     'rest_framework', # pip install djangorestframework
     'django_filters', # pip install django-filter
     'debug_toolbar', # pip install django-debug-toolbar
+    'drf_spectacular', # pip install drf-spectacular                        # https://drf-spectacular.readthedocs.io/en/latest/readme.html
+    'drf_spectacular_sidecar', # pip install drf-spectacular[sidecar]
     'accounts',
     'notes',
 ]
@@ -170,8 +172,18 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated'
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Notes App Django Backend Schema',
+    'DESCRIPTION': 'Endpoints Schema for Python Django backend for note taking app.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SWAGGER_UI_DIST': 'SIDECAR',
+    'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
+    'REDOC_DIST': 'SIDECAR',
+}
 
 ACCOUNT_ACTIVATION_TIME = 60*60*24 # One day in seconds - this setting defines how long user has to click a link in the verification email upon registerning
 
