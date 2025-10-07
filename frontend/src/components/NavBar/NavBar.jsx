@@ -7,31 +7,34 @@ import { useUserContext } from '@/hooks/useUserContext';
 import { useNotesContext } from "@/hooks/useNotesContext";
 import useNotes from "@/hooks/useNotes";
 import { useNavigate } from "react-router-dom";
+import DisappearingAlert from "../DisappearingAlert";
 
 
 const NavBar = () => {
     const navigate = useNavigate();
     const { user, logout } = useUserContext();
-    const { currentNoteId, setCurrentNoteId, storageNoteIdKey } = useNotesContext();
+    const { notes, currentNoteId, setCurrentNoteId, storageNoteIdKey } = useNotesContext();
     const [notesNavBar, setNotesNavBar] = useState({ title: "Notes", url: "/notes", });
-    const { createNote } = useNotes();
+    const { createEncryptedNote, error } = useNotes();
 
     const handleNewNoteCreation = async () => {
-        const status = await createNote({title: 'New Note', body: ''});
+        const status = await createEncryptedNote({title: 'New Note', body: ''}, 'encryption key NavBar.jsx');
         if (status.success) {
-            console.log(status.data);
             navigate(`/notes/${status.data.id}`);
         } else {
-            console.log(status.error);
+            console.log(error);
         }
     }
 
     useLayoutEffect(() => {
+        if (!user) return
+
         const savedNoteId = localStorage.getItem(storageNoteIdKey);
-        if (savedNoteId) {
+        if (!savedNoteId) return
+        if (notes.find(note => note.id === savedNoteId)) {
             setCurrentNoteId(savedNoteId);
         }
-    }, []);
+    }, [user]);
 
     useEffect(() => {
         if (user) {
@@ -133,9 +136,12 @@ const NavBar = () => {
         }
     ];
 
-    return (
+    return (<>
+        {error && <div className='absolute z-20'>
+            <DisappearingAlert title="Error" time="5s" variant="destructive" color="red-500">{error}</DisappearingAlert>
+        </div>}
         <NavBarComponent logo={logo} menu={menu} authButtons={authUser || authAnonymous} />
-    );
+    </>);
 }
 
 export default NavBar

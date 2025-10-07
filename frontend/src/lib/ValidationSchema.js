@@ -25,7 +25,7 @@ const passwordSchema = defaultSchema
 })
     .refine((password) => /[0-9]/.test(password), { message: 'Password has to contain at least one number.' })
     .refine((password) => /[!@#$%^&*_\-=.]/.test(password), {
-        message: 'Password has to contain at least one of the following special characters: !@#$%^&*_-=.',
+        message: 'Password has to contain at least one of the following special characters: !@#$%^&*_=.',
 });
 
 

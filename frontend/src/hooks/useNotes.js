@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useNotesContext } from '@/hooks/useNotesContext';
 import NotesService from '@/services/NotesService';
+import UserService from '@/services/UserService';
 
 const useNotes = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-    const { notes, updateNotes, addNote, removeNote } = useNotesContext();
+    const { notes, updateNotes, addNote, removeNote, setCurrentNoteId } = useNotesContext();
 
 
     const fetchNotes = async () => {
@@ -15,6 +16,7 @@ const useNotes = () => {
         try {
             const response = await NotesService.fetchNotes();
             updateNotes(response.data);
+            console.log(response.data)
             return { success: true, data: response.data };
         } catch (err) {
             const errorMessage = err.response?.data?.message || 'Failed to fetch notes';
@@ -35,8 +37,31 @@ const useNotes = () => {
             addNote(response.data);
             return { success: true, data: response.data };
         } catch (err) {
-            const errorMessage = err.response?.data?.message || 'Failed to create note';
-            console.log(err)
+            const errorMessage = err.response?.data?.message || err.response?.data?.non_field_errors || err.response?.data || 'Failed to create note';
+            setError(errorMessage);
+            return { success: false, error: errorMessage };
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const createEncryptedNote = async (data, encryption_key) => {
+        setIsLoading(true);
+        setError(null);
+
+        const newData = {
+            ...data,
+            is_encrypted: true,
+            encryption_key: encryption_key,
+        }
+
+        try {
+            const response = await NotesService.createNote(newData);
+            console.log(response)
+            addNote(response.data);
+            return { success: true, data: response.data };
+        } catch (err) {
+            const errorMessage = err.response?.data?.message || err.response?.data?.non_field_errors || err.response?.data || 'Failed to create note';
             setError(errorMessage);
             return { success: false, error: errorMessage };
         } finally {
@@ -81,8 +106,50 @@ const useNotes = () => {
         }
     };
 
+    // This is used to retrieve list of users to whom note may be shared to. Thus this function should be in useNotes.jsx and not in useAuth.jsx
+    const listUsers = async () => {
+        setIsLoading(true);
+        setError(null);
 
-    return { fetchNotes, createNote, saveUpdateNote, deleteNote, isLoading, error }
+        try {
+            const response = await UserService.getUsersList();
+            console.log(response.data)
+            return { success: true, data: response.data };
+        } catch (err) {
+            const errorMessage = err.response?.data?.message || 'Failed to obtain list of users';
+            setError(errorMessage);
+            return { success: false, error: errorMessage };
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    const shareNote = async (noteId, user, permission) => {
+        setIsLoading(true);
+        setError(null);
+
+        console.log(user.id)
+        const data = {
+            'user': user.id,
+            'encryption_key': 'random encryption key useNotes.jsx',
+            'permission': permission
+        }
+
+        try {
+            const response = await NotesService.shareNote(noteId, data);
+            console.log(response.data)
+            return { success: true, data: response.data };
+        } catch (err) {
+            const errorMessage = err.response?.data?.message || 'Failed to obtain list of users';
+            setError(errorMessage);
+            console.log(err)
+            return { success: false, error: errorMessage };
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    return { fetchNotes, createNote, createEncryptedNote, saveUpdateNote, deleteNote, listUsers, shareNote, isLoading, error }
 }
 
 export default useNotes

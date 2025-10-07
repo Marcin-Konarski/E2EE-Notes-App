@@ -177,7 +177,6 @@ const useAuth = () => {
         }
     };
 
-
     return { register, verifyEmail, loginUser, loginOnPageRefresh, updateUser, changePassword, resendVerificationEmail, deleteUser, isLoading, error };
 }
 

@@ -32,6 +32,33 @@ class UserViewSet(ModelViewSet):
             return [AllowAny()]
         return [IsAuthenticated()]
 
+    def list(self, request, *args, **kwargs):
+        users = User.objects.prefetch_related('keys').all()
+
+        users_data = []
+        for user in users:
+            if not user.is_verified:
+                continue
+
+            user_key = user.keys.first() # Assuming one UserKey per User
+            if not user_key or not user_key.public_key:
+                continue
+
+            try:
+                public_key_bytes = bytes(user_key.public_key)
+                public_key_decoded = public_key_bytes.decode(settings.DEFAULT_ENCODING)
+                user_data = {
+                    'id': str(user.id),
+                    'username': user.username,
+                    'public_key': public_key_decoded
+                }
+            except UnicodeDecodeError:
+                import base64
+                user_data['public_key'] = base64.b64decode(public_key_bytes).decode('ascii')
+
+            users_data.append(user_data)
+
+        return Response(users_data, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
         try:
@@ -218,7 +245,9 @@ class ExpireJWT(APIView):
         if not refresh_token:
             return Response({'message': 'No refresh token.'}, status=status.HTTP_200_OK) # This endpoint returns status code of 204 as well as if there is no refresh token that means user is already logged out so everything is fine
 
-        token = RefreshToken(refresh_token)
-        token.blacklist() # Revoke token so that it cannot be used again
-
-        return Response({'message': 'Successfuly logged out'}, status=status.HTTP_200_OK)
+        try:
+            token = RefreshToken(refresh_token)
+            token.blacklist() # Revoke token so that it cannot be used again
+            return Response({'message': 'Successfuly logged out'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'message': 'Already logged out or invalid token'}, status=status.HTTP_200_OK)

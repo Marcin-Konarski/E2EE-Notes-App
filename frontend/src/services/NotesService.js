@@ -23,6 +23,10 @@ class NotesService {
         return apiClient.delete(`/notes/notes/${id}/`);
     }
 
+    shareNote(id, data) {
+        return apiClient.post(`notes/notes/${id}/share/`, data);
+    }
+
 }
 
 export default new NotesService

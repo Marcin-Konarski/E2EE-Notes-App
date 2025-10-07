@@ -1,34 +1,44 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { EllipsisVertical, SquarePen, Trash2, AlertTriangle } from 'lucide-react'
+import { EllipsisVertical, SquarePen, Trash2, Share2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/Button'
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/DropDownMenu'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, } from "@/components/ui/dialog"
 import useNotes from '@/hooks/useNotes'
+import DialogNotes from './DialogNotes'
 
 const NotesDropdownMenu = ({ currentNote, onRename }) => {
-  const navigate = useNavigate();
-  const { deleteNote } = useNotes();
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState(null);
+  const navigate = useNavigate()
+  const { deleteNote, listUsers, shareNote, isLoading, error } = useNotes()
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showShareDialog, setShowShareDialog] = useState(false)
+  const [usersList, setUsersList] = useState([])
 
   const handleDelete = async () => {
-    setIsDeleting(true);
-    setDeleteError(null);
-
-    const result = await deleteNote(currentNote.id);
+    const result = await deleteNote(currentNote.id)
     
     if (result.success) {
-      setShowDeleteDialog(false);
-      navigate('/notes');
-    } else {
-      setDeleteError(result.error);
-      setIsDeleting(false);
+      setShowDeleteDialog(false)
+      navigate('/notes')
     }
-  };
+  }
+
+  const handleGetUsers = async () => {
+    const result = await listUsers()
+
+    if (result.success) {
+      setUsersList(result.data)
+      setShowShareDialog(true)
+    }
+  }
+
+  const handleShare = async (user, permission) => {
+    const result = await shareNote(currentNote.id, user, permission)
+    
+    if (result.success) {
+      setShowShareDialog(false)
+    }
+  }
 
   return (
     <>
@@ -40,17 +50,24 @@ const NotesDropdownMenu = ({ currentNote, onRename }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-48" align="end">
           <DropdownMenuGroup>
-            <DropdownMenuItem className='cursor-pointer' onClick={() => { onRename() }} >
+            <DropdownMenuItem className='cursor-pointer' onClick={onRename}>
               <span className="flex items-center justify-between w-full">
                 Rename
                 <SquarePen className="size-4" />
+              </span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem className='cursor-pointer' onClick={handleGetUsers}>
+              <span className="flex items-center justify-between w-full">
+                Share
+                <Share2 className="size-4"/>
               </span>
             </DropdownMenuItem>
           </DropdownMenuGroup>
 
           <DropdownMenuSeparator />
 
-          <DropdownMenuItem className='cursor-pointer text-destructive focus:text-destructive' onClick={() => { setShowDeleteDialog(true) }}>
+          <DropdownMenuItem className='cursor-pointer text-destructive focus:text-destructive' onClick={() => setShowDeleteDialog(true)}>
             <span className="flex items-center justify-between w-full">
               Delete
               <Trash2 className="size-4 text-destructive" />
@@ -59,34 +76,13 @@ const NotesDropdownMenu = ({ currentNote, onRename }) => {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Note</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete "{currentNote.title}"? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
+      {/* Dialog for deleting notes */}
+      <DialogNotes isSharing={false} showDialog={showDeleteDialog} setShowDialog={setShowDeleteDialog} currentNote={currentNote} handleOnClick={handleDelete} error={error} isPending={isLoading} buttonText="Delete" buttonTextPending="Deleting..." />
 
-          {deleteError && (
-            <Alert variant="destructive">
-              <AlertTriangle className="size-4" />
-              <AlertDescription>{deleteError}</AlertDescription>
-            </Alert>
-          )}
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)} disabled={isDeleting}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
-              {isDeleting ? 'Deleting...' : 'Delete'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Dialog for sharing notes */}
+      <DialogNotes isSharing={true} showDialog={showShareDialog} setShowDialog={setShowShareDialog} currentNote={currentNote} handleOnClick={handleShare} onShare={handleShare} error={error} isPending={isLoading} usersList={usersList} />
     </>
-  );
+  )
 }
 
 export default NotesDropdownMenu

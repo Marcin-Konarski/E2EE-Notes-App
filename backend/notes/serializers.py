@@ -26,7 +26,11 @@ class BaseNoteSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance) # Get data
         if instance.body:
             body_bytes = bytes(instance.body) # convert body from the request to binary (cuz postgres returns memoryview object which doesn't have decode method)
-            data['body'] = body_bytes.decode(settings.DEFAULT_ENCODING) # now decode the body to in order to print readable result in the JSON response
+            decoded_body = body_bytes.decode(settings.DEFAULT_ENCODING) # now decode the body to in order to print readable result in the JSON response
+            data['body'] = decoded_body if decoded_body else ''
+        else:
+            data['body'] = ''
+
         return data
 
 
@@ -56,7 +60,7 @@ class NotesSerializer(BaseNoteSerializer):
         if get_user_key:
             user_key = get_user_key([request.user.id])
             if not user_key:
-                raise serializers.ValidationError({'non_field_errors': ['Public key required for encrypted notes. Create one at POST /users/users/keys/']})
+                raise serializers.ValidationError({'non_field_errors': ['Public key is required for encrypted notes.']})
 
         # If note is not encrypted than don't create encryption key for this NoteItem as it's not necessary
         if request and is_encrypted == False:

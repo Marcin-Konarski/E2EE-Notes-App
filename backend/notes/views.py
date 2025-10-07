@@ -13,7 +13,8 @@ from .serializers import NotesSerializer, NoteMeSerializer, NotesDetailSerialize
             ChangeEncryptionSerializer, ShareNoteSerializer, ShareEncryptedNoteSerializer, GetPublicKeySerializer
 from .permissions import CanReadNote, CanWriteNote, CanShareNote, CanDeleteNote, CanChangeEncryption
 
-
+import logging
+logger = logging.getLogger(__name__)
 
 class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, GenericViewSet): # This endpoint also supports the POST request
     queryset = Note.objects.all()
@@ -184,6 +185,9 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
 
             user_key_target = self._get_user_key([target_user]) # This is a UserKey instance of a user that the note will be shared to
             user_key_current = self._get_user_key([request.user.id]) # This is a UserKey of a user that shares the note
+
+            logger.info(target_user)
+            logger.info(user_key_target)
 
             # Verify if the target user has already access to this note
             if NoteItem.objects.filter(note=note, user_key=user_key_target).exists():

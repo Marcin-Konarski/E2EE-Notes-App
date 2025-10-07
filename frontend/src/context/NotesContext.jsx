@@ -57,8 +57,6 @@ export const NotesProvider = ({ children }) => {
         setNoteEdits,
         currentNoteId,
         setCurrentNoteId,
-        // newNote,
-        // setNewNote,
         storageNoteIdKey
     };
 

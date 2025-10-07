@@ -1,5 +1,5 @@
-import { Link, Outlet, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { Link, Outlet, useParams } from "react-router-dom";
+import { memo, useCallback, useEffect, useState } from "react";
 
 import useNotes from "@/hooks/useNotes";
 import { useUserContext } from "@/hooks/useUserContext";
@@ -15,7 +15,6 @@ import { cn } from "@/lib/utils";
 
 
 const Notes = () => {
-  const newNotePage = useLocation();
   const { user } = useUserContext();
   const { notes } = useNotesContext();
 
@@ -53,14 +52,15 @@ const Notes = () => {
 }
 
 
-const ListItem = ({ item }) => {
+const ListItem = memo(({ item }) => {
+  const params = useParams();
   const { saveUpdateNote } = useNotes();
   const [isHovered, setIsHovered] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const [newTitle, setNewTitle] = useState(item.title);
   const [renameError, setRenameError] = useState(null);
 
-  const handleRename = async () => {
+  const handleRename = useCallback(async () => {
     if (!newTitle.trim() || newTitle === item.title) {
       setIsRenaming(false);
       setNewTitle(item.title);
@@ -73,7 +73,7 @@ const ListItem = ({ item }) => {
       setNewTitle(item.title);
     }
     setIsRenaming(false);
-  };
+  }, [newTitle]);
 
   if (isRenaming) {
     return (
@@ -101,7 +101,7 @@ const ListItem = ({ item }) => {
 
     <div className="relative w-full" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
       <Button variant="ghost" className={cn("flex flex-row gap-2 w-full rounded-md p-3",
-          "leading-none text-sm font-medium justify-between hover:bg-accent transition-colors"
+          `leading-none text-sm font-medium justify-between ${params.noteId === item?.id ? 'bg-accent/60 hover:bg-accent transition-colors' : 'hover:bg-accent/70 transition-colors'}`
         )} asChild>
         <div className="w-full flex items-center justify-between">
           <Link to={item?.id || '/notes/new'} className='flex-1 flex items-center min-w-0'>
@@ -113,8 +113,9 @@ const ListItem = ({ item }) => {
         </div>
       </Button>
     </div>
+
   </>);
-}
+});
 
 
 export default Notes

@@ -3,6 +3,10 @@ import { apiClient } from "@/services/ApiClient"
 
 class UserService {
 
+    getUsersList() {
+        return apiClient.get('/users/users/'); // This endpoint is used for geting users list in order to share notes to other users
+    }
+
     createUser(data) {
         return apiClient.post('/users/users/', data);
     }
@@ -31,8 +35,10 @@ class UserService {
         return apiClient.post('/users/jwt/refresh/');
     }
 
-    expireToken() {
-        return apiClient.post('/users/jwt/expire/')
+    async expireToken() {
+        return apiClient.post('/users/jwt/expire/').catch(() => {
+            return Promise.resolve() // If there are error - user might already be logged out thus ignore all errors
+        })
     }
 }
 
