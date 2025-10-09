@@ -6,7 +6,7 @@ import UserService from '@/services/UserService';
 const useNotes = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-    const { notes, updateNotes, addNote, removeNote, setCurrentNoteId } = useNotesContext();
+    const { notes, updateNotes, addNote, removeNote } = useNotesContext();
 
 
     const fetchNotes = async () => {
@@ -58,7 +58,7 @@ const useNotes = () => {
         try {
             const response = await NotesService.createNote(newData);
             console.log(response)
-            addNote(response.data);
+            addNote({...response.data, permission: 'O'}); // Add owner permission here as well in order to render newly created notes in the `My notes` section
             return { success: true, data: response.data };
         } catch (err) {
             const errorMessage = err.response?.data?.message || err.response?.data?.non_field_errors || err.response?.data || 'Failed to create note';

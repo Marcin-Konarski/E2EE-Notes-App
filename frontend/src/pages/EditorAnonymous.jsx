@@ -4,7 +4,7 @@ import { SimpleEditor } from '@/components/tiptap-templates/simple/simple-editor
 const EditorAnonymous = () => {
     return (
         <div className="simple-editor-wrapper-anonymous">
-            <SimpleEditor content={null} />
+            <SimpleEditor content={null}/>
         </div>
     );
 }

@@ -16,7 +16,7 @@ const NavBarComponent = ({ logo, menu, authButtons }) => {
         <nav className="hidden w-full justify-between lg:flex px-[2vw]">
           <div className="flex items-center gap-6">
             {/* Logo */}
-            <a href={logo.url} className="flex items-center">
+            <a href={logo.url} className="flex items-center justify-center">
               <img src={logo.src} className={"h-" + logo.size + " dark:invert"} alt={logo.alt} />
             </a>
 
@@ -50,15 +50,11 @@ const NavBarComponent = ({ logo, menu, authButtons }) => {
         </nav>
 
         {/* Mobile Menu */}
-        <div className="block lg:hidden">
+        <div className="block sticky lg:hidden">
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link to={logo.url} className="flex items-center gap-2">
-              <img
-                src={logo.src}
-                className={"h-" + logo.size + " dark:invert"}
-                alt={logo.alt}
-              />
+              <img src={logo.src} className={"h-" + logo.size + " dark:invert mt-1"} alt={logo.alt} />
             </Link>
 
             {/* Mobile Side Panel */}
@@ -71,9 +67,9 @@ const NavBarComponent = ({ logo, menu, authButtons }) => {
               <SheetContent className="overflow-y-auto">
                 <SheetHeader>
                   <SheetTitle>
-                    <a href={logo.url} className="flex items-center gap-2">
-                      <img src={logo.src} className={"h-" + logo.size + " dark:invert"} alt={logo.alt} />
-                    </a>
+                    {/* <a href={logo.url} className={`flex items-center gap-2 size-${logo.size} `}> */}
+                      <img src={logo.src} className={"h-" + logo.size + " dark:invert mt-2"} alt={logo.alt} />
+                    {/* </a> */}
                   </SheetTitle>
                 </SheetHeader>
                 <div className="flex flex-col gap-6 p-4">
@@ -161,8 +157,7 @@ const RenderMobileMenuItem = (item) => {
                 key={subItem.title}
                 onClick={subItem.onClick}
                 className={cn("hover:bg-muted hover:text-accent-foreground flex w-full select-none",
-                              "flex-row gap-4 rounded-sm p-3 leading-none no-underline outline-none transition-colors text-left")}
-              >
+                              "flex-row gap-4 rounded-sm p-3 leading-none no-underline outline-none transition-colors text-left")}>
                 <div className="text-foreground">{subItem.icon}</div>
                 <div>
                   <div className="text-sm font-semibold">{subItem.title}</div>
@@ -195,8 +190,7 @@ const SubMenuLink = ({ item }) => {
       <button
         onClick={item.onClick}
         className={cn("hover:bg-muted hover:text-accent-foreground flex min-w-80 select-none",
-                      "flex-row gap-4 rounded-sm p-3 leading-none no-underline outline-none transition-colors text-left w-full")}
-      >
+                      "flex-row gap-4 rounded-sm p-3 leading-none no-underline outline-none transition-colors text-left w-full")}>
         <div className="text-foreground">{item.icon}</div>
         <div>
           <div className="text-sm font-semibold">{item.title}</div>

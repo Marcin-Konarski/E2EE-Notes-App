@@ -20,31 +20,31 @@ const DialogNotes = ({ isSharing, showDialog, setShowDialog, currentNote, handle
     }
 
     const query = searchQuery.toLowerCase()
-    return usersList.filter(user => 
-        user.username.toLowerCase().startsWith(query)
-    )
+        return usersList.filter(user => 
+            user.username.toLowerCase().startsWith(query)
+        )
     }, [searchQuery, usersList])
 
     const handleShareClick = async () => {
-    if (selectedUser && onShare) {
-        await onShare(selectedUser, selectedPermission)
-        setSearchQuery('')
-        setSelectedUser(null)
-        setSelectedPermission('read')
-    }
+        if (selectedUser && onShare) {
+            await onShare(selectedUser, selectedPermission)
+            setSearchQuery('')
+            setSelectedUser(null)
+            setSelectedPermission('read')
+        }
     }
 
     const handleDialogClose = (open) => {
     setShowDialog(open)
-    if (!open) {
-        setSearchQuery('')
-        setSelectedUser(null)
-        setSelectedPermission('read')
-    }
+        if (!open) {
+            setSearchQuery('')
+            setSelectedUser(null)
+            setSelectedPermission('read')
+        }
     }
 
     const getPermissionLabel = (permission) => {
-    return permission.charAt(0).toUpperCase() + permission.slice(1)
+        return permission.charAt(0).toUpperCase() + permission.slice(1)
     }
 
     if (isSharing) {
@@ -151,9 +151,12 @@ const DialogNotes = ({ isSharing, showDialog, setShowDialog, currentNote, handle
         <Dialog open={showDialog} onOpenChange={setShowDialog}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Delete Note</DialogTitle>
+                    <DialogTitle>{currentNote.permission === 'O' ? 'Delete Note' : 'Remove access to the note'}</DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to delete "{currentNote?.title}"? This action cannot be undone.
+                        {currentNote.permission === 'O'
+                        ? `Are you sure you want to delete "${currentNote?.title}"? This action cannot be undone.`
+                        : `Are you sure you want to remove access to the "${currentNote?.title}" note? You will have to ask note's owner in order to regain access to this note.`
+                        }
                     </DialogDescription>
                 </DialogHeader>
 
@@ -169,7 +172,10 @@ const DialogNotes = ({ isSharing, showDialog, setShowDialog, currentNote, handle
                         Cancel
                     </Button>
                     <Button variant="destructive" onClick={handleOnClick} disabled={isPending}>
-                        {isPending ? buttonTextPending : buttonText}
+                        {currentNote.permission === 'O'
+                            ? isPending ? 'Deleting...' : 'Delete'
+                            : isPending ? 'Removing...' : 'Remove'
+                        }
                     </Button>
                 </DialogFooter>
             </DialogContent>

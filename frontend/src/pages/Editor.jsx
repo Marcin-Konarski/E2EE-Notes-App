@@ -13,7 +13,7 @@ const Editor = () => {
     const { saveUpdateNote } = useNotes();
     const { notes, getNoteBody, noteEdits, currentNoteId, setCurrentNoteId, storageNoteIdKey } = useNotesContext();
     const [isLoading, setIsLoading] = useState(true);
-    const previousNoteIdRef = useRef(null);
+    // const previousNoteIdRef = useRef(null);
 
 
     // Find current note based on id from URL based on clicked note to display according body

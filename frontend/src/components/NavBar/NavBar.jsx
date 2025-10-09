@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Book, Sunset, Trees, Key, FilePlus, Settings, LogOut} from "lucide-react";
 
 import ArxLogo from '@/assets/logo.svg'
@@ -13,9 +13,9 @@ import DisappearingAlert from "../DisappearingAlert";
 const NavBar = () => {
     const navigate = useNavigate();
     const { user, logout } = useUserContext();
+    const { createEncryptedNote, error } = useNotes();
     const { notes, currentNoteId, setCurrentNoteId, storageNoteIdKey } = useNotesContext();
     const [notesNavBar, setNotesNavBar] = useState({ title: "Notes", url: "/notes", });
-    const { createEncryptedNote, error } = useNotes();
 
     const handleNewNoteCreation = async () => {
         const status = await createEncryptedNote({title: 'New Note', body: ''}, 'encryption key NavBar.jsx');
@@ -26,17 +26,18 @@ const NavBar = () => {
         }
     }
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         if (!user) return
 
         const savedNoteId = localStorage.getItem(storageNoteIdKey);
         if (!savedNoteId) return
         if (notes.find(note => note.id === savedNoteId)) {
-            setCurrentNoteId(savedNoteId);
+            setCurrentNoteId(null);
         }
     }, [user]);
 
     useEffect(() => {
+
         if (user) {
             setNotesNavBar(c => ({...c, items: [
                     {
@@ -48,10 +49,10 @@ const NavBar = () => {
                         function: handleNewNoteCreation,
                     },
                     {
-                        title: "Edit Notes",
+                        title: "Notes List",
                         // description: "Edit last note",
                         icon: <Book className="size-5 shrink-0" />,
-                        url: currentNoteId ? `/notes/${currentNoteId}` : "/notes",
+                        url: "/notes",
                     },
                 ],
             }))

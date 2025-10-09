@@ -270,7 +270,6 @@ export function SimpleEditor({ onClose, content = '' }) {
                   bottom: `calc(100% - ${height - rect.y}px)`,
                 }
               : {}),
-          
           }}>
           {mobileView === "main" ? (
             <MainToolbarContent
