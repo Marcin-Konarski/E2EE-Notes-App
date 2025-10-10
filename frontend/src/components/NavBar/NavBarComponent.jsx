@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/NavBar/NavigationMenu";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/Accordion";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/Sheet";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
@@ -71,6 +71,7 @@ const NavBarComponent = ({ logo, menu, authButtons }) => {
                       <img src={logo.src} className={"h-" + logo.size + " dark:invert mt-2"} alt={logo.alt} />
                     {/* </a> */}
                   </SheetTitle>
+                  <SheetDescription />
                 </SheetHeader>
                 <div className="flex flex-col gap-6 p-4">
                   <Accordion type="single" collapsible className="flex w-full flex-col gap-4">
@@ -152,22 +153,13 @@ const RenderMobileMenuItem = (item) => {
         </AccordionTrigger>
         <AccordionContent className="mt-2">
           {item.items.map((subItem) => 
-            subItem.onClick ? (
-              <button
-                key={subItem.title}
-                onClick={subItem.onClick}
-                className={cn("hover:bg-muted hover:text-accent-foreground flex w-full select-none",
-                              "flex-row gap-4 rounded-sm p-3 leading-none no-underline outline-none transition-colors text-left")}>
-                <div className="text-foreground">{subItem.icon}</div>
-                <div>
-                  <div className="text-sm font-semibold">{subItem.title}</div>
-                  {subItem.description && (
-                    <p className="text-muted-foreground text-sm leading-snug">
-                      {subItem.description}
-                    </p>
-                  )}
-                </div>
-              </button>
+            subItem.isButton ? (
+              <Button key={subItem.title} onClick={subItem.function} variant="ghost" 
+                className={cn("flex flex-row gap-4 !py-6 w-full rounded-sm p-3",
+                              "leading-none text-sm font-semibold justify-start")}>
+                <span className="text-foreground">{subItem.icon}</span>
+                <span>{subItem.title}</span>
+              </Button>
             ) : (
               <SubMenuLink key={subItem.title} item={subItem} />
             )

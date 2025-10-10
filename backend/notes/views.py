@@ -10,11 +10,9 @@ from rest_framework.permissions import IsAuthenticated
 
 from .models import Note, NoteItem
 from .serializers import NotesSerializer, NoteMeSerializer, NotesDetailSerializer, UserKeyInfoSerializer, \
-            ChangeEncryptionSerializer, ShareNoteSerializer, ShareEncryptedNoteSerializer, GetPublicKeySerializer
+            ChangeEncryptionSerializer, ShareNoteSerializer, ShareEncryptedNoteSerializer, GetPublicKeySerializer, RemoveAccessToNote
 from .permissions import CanReadNote, CanWriteNote, CanShareNote, CanDeleteNote, CanChangeEncryption
 
-import logging
-logger = logging.getLogger(__name__)
 
 class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, GenericViewSet): # This endpoint also supports the POST request
     queryset = Note.objects.all()
@@ -57,6 +55,8 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
 
     def get_serializer_class(self):
         """Based on action returns serializer."""
+        if self.action == 'remove_access':
+            return RemoveAccessToNote
         if self.action in ['list', 'create']:
             return NotesSerializer # Basic info for list/create
         return NotesDetailSerializer # Detailed info for retrieve/update/delete of specific note
@@ -151,7 +151,6 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
         }, status=status.HTTP_200_OK)
 
 
-
     @action(detail=True, methods=['GET', 'POST'])
     def share(self, request, pk=None):
         """
@@ -186,12 +185,13 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
             user_key_target = self._get_user_key([target_user]) # This is a UserKey instance of a user that the note will be shared to
             user_key_current = self._get_user_key([request.user.id]) # This is a UserKey of a user that shares the note
 
-            logger.info(target_user)
-            logger.info(user_key_target)
-
             # Verify if the target user has already access to this note
-            if NoteItem.objects.filter(note=note, user_key=user_key_target).exists():
-                return Response({'detail': f'User {target_user} has already access to this note'}, status=status.HTTP_409_CONFLICT)
+            if (note_item := NoteItem.objects.filter(note=note, user_key=user_key_target)).exists():
+                obj = note_item.first()
+                if obj.permission != 'O':
+                    obj.permission = permission
+                    obj.save()
+                return Response({'detail': f'Updated {target_user} permissions to the note'}, status=status.HTTP_200_OK)
 
             if note.is_encrypted and not user_key_target:
                 return Response({'non_field_errors': [f'Public key required for encrypted notes. User {target_user} has to create UserKey at /users/users/keys/']}, status=status.HTTP_400_BAD_REQUEST)
@@ -213,17 +213,42 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
             return Response({'detail': f'Note shared: {new_note_item.id}'}, status=status.HTTP_201_CREATED)
 
 
+    @action(detail=False, methods=['DELETE'])
+    def remove_access(self, request):
+        """Remove a user's access to a note by deleting their NoteItem."""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        note_id = serializer.validated_data['note']
+        user_id = serializer.validated_data['user']
+
+        try:
+            UserKey = apps.get_model(settings.AUTH_USER_KEY_MODEL)
+            user_key = UserKey.objects.get(user=user_id)
+        
+            deleted_count, _ = NoteItem.objects.filter(note_id=note_id, user_key=user_key).delete()
+
+            if deleted_count == 0:
+                return Response({'detail': 'User doesn\'t have access to the note'}, status=status.HTTP_404_NOT_FOUND)
+
+            return Response({'detail': 'Access removed successfully'}, status=status.HTTP_204_NO_CONTENT)
+
+        except UserKey.DoesNotExist:
+            return Response({'detail': 'UserKey not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'detail': f'An error occurred: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     @action(detail=True, methods=['GET'])
     def get_public_keys(self, request, pk=None):
         """List public keys of all users who have access to specific note"""
         note = self.get_object()
         # Get user keys for current note as UserKey entries hold the user's public keys and in order to properly encrypt notes symmetric key must be encrypted with public keys of all users who have access to the note
-        note_items = NoteItem.objects.filter(note=note).select_related('user_key__user') # Here also get user that is realted to this user_key record as we want to reutrn user.id as well
+        users_public_key = NoteItem.objects.filter(note=note).select_related('user_key__user') # Here also get user that is realted to this user_key record as we want to reutrn user.id as well
 
         # Create the response data structure
         response_data = {
             'id': str(note.id),
-            'keys': note_items
+            'keys': users_public_key
         }
 
         serializer = GetPublicKeySerializer(response_data)

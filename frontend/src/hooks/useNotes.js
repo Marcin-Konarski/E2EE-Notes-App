@@ -1,22 +1,23 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useNotesContext } from '@/hooks/useNotesContext';
 import NotesService from '@/services/NotesService';
 import UserService from '@/services/UserService';
+import { useUserContext } from './useUserContext';
 
 const useNotes = () => {
+    const { notes, updateNotes, updateNote, addNote, removeNote } = useNotesContext();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-    const { notes, updateNotes, addNote, removeNote } = useNotesContext();
 
 
-    const fetchNotes = async () => {
+    const fetchNotes = useCallback(async () => {
         setIsLoading(true);
         setError(null);
 
         try {
             const response = await NotesService.fetchNotes();
             updateNotes(response.data);
-            console.log(response.data)
+            console.log(notes)
             return { success: true, data: response.data };
         } catch (err) {
             const errorMessage = err.response?.data?.message || 'Failed to fetch notes';
@@ -25,16 +26,16 @@ const useNotes = () => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
 
-    const createNote = async (data) => {
+    const createNote = useCallback(async (data) => {
         setIsLoading(true);
         setError(null);
 
         try {
             const response = await NotesService.createNote(data);
             console.log(response)
-            addNote(response.data);
+            addNote({...response.data, permission: 'O'});
             return { success: true, data: response.data };
         } catch (err) {
             const errorMessage = err.response?.data?.message || err.response?.data?.non_field_errors || err.response?.data || 'Failed to create note';
@@ -43,9 +44,9 @@ const useNotes = () => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
 
-    const createEncryptedNote = async (data, encryption_key) => {
+    const createEncryptedNote = useCallback(async (data, encryption_key) => {
         setIsLoading(true);
         setError(null);
 
@@ -67,35 +68,29 @@ const useNotes = () => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
 
-    const saveUpdateNote = async (noteId, json) => {
+    const saveUpdateNote = useCallback(async (noteId, json) => {
         setError(null);
 
         try {
+            updateNote(noteId, json); // Update note in memory regardless of whether saving to backend was successful or not
             const response = await NotesService.updateNote(noteId, json);
             console.log(response)
-            if (response.status === 200) {
-                const updatedNotes = notes.map(note => 
-                    note.id === noteId ? {...note, body: response.data.body, title: response.data.title} : note
-                );
-                updateNotes(updatedNotes);
-            }
             return {success: true }
         } catch (err) {
             const errorMessage = err.response?.data?.message || 'Failed to update note';
             setError(errorMessage);
             return { success: false, error: errorMessage };
         }
-    }
+    }, []);
 
-    const deleteNote = async (id) => {
+    const deleteNote = useCallback(async (id) => {
         setIsLoading(true);
         setError(null);
 
         try {
             await NotesService.deleteNote(id);
-            removeNote(id);
             return { success: true };
         } catch (err) {
             const errorMessage = err.response?.data?.message || 'Failed to delete note';
@@ -104,10 +99,27 @@ const useNotes = () => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
+
+    const removeAccess = useCallback(async (noteId, userId) => {
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            console.log(noteId, userId)
+            await NotesService.removeAccess({note: noteId, user: userId});
+            return { success: true };
+        } catch (err) {
+            const errorMessage = err.response?.data?.message || 'Failed to delete note';
+            setError(errorMessage);
+            return { success: false, error: errorMessage };
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
 
     // This is used to retrieve list of users to whom note may be shared to. Thus this function should be in useNotes.jsx and not in useAuth.jsx
-    const listUsers = async () => {
+    const listUsers = useCallback(async () => {
         setIsLoading(true);
         setError(null);
 
@@ -122,9 +134,9 @@ const useNotes = () => {
         } finally {
             setIsLoading(false);
         }
-    }
+    }, []);
 
-    const shareNote = async (noteId, user, permission) => {
+    const shareNote = useCallback(async (noteId, user, permission) => {
         setIsLoading(true);
         setError(null);
 
@@ -147,9 +159,9 @@ const useNotes = () => {
         } finally {
             setIsLoading(false);
         }
-    }
+    }, []);
 
-    return { fetchNotes, createNote, createEncryptedNote, saveUpdateNote, deleteNote, listUsers, shareNote, isLoading, error }
+    return { fetchNotes, createNote, createEncryptedNote, saveUpdateNote, deleteNote, removeAccess, listUsers, shareNote, isLoading, error }
 }
 
 export default useNotes

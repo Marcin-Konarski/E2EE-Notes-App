@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react"
 
 // --- Tiptap Core Extensions ---
@@ -76,8 +76,9 @@ import { XIcon } from 'lucide-react'
 
 // --- Debounce library to improve performace of this editor ---
 import { useDebouncedCallback } from 'use-debounce'
+import useNotes from '@/hooks/useNotes'
 
-const MainToolbarContent = ({ onHighlighterClick, onLinkClick, isMobile, onClose }) => {
+const MainToolbarContent = memo(({ onHighlighterClick, onLinkClick, isMobile, onClose }) => {
   return (
     <>
       {/* <Spacer /> */}
@@ -131,9 +132,9 @@ const MainToolbarContent = ({ onHighlighterClick, onLinkClick, isMobile, onClose
       {isMobile && <ToolbarSeparator />}
     </>
   );
-}
+});
 
-const MobileToolbarContent = ({ type, onBack }) => (
+const MobileToolbarContent = memo(({ type, onBack }) => (
   <>
     <ToolbarGroup>
       <Button data-style="ghost" onClick={onBack}>
@@ -154,100 +155,69 @@ const MobileToolbarContent = ({ type, onBack }) => (
       <LinkContent />
     )}
   </>
-)
+));
 
-export function SimpleEditor({ onClose, content = '' }) {
-  const isMobile = useIsMobile()
-  const { height } = useWindowSize()
+function SimpleEditor({ onClose, content = '', noteTitle, noteId }) {
+  const isMobile = useIsMobile();
+  const { height } = useWindowSize();
   const { user } = useUserContext();
-  const { currentNoteId, updateNoteBody } = useNotesContext();
-  const [mobileView, setMobileView] = useState("main")
-  const toolbarRef = useRef(null)
-  const contentSetRef = useRef(null);
+  const { saveUpdateNote } = useNotes();
+  const [mobileView, setMobileView] = useState("main");
+  const toolbarRef = useRef(null);
 
-  // Functiona to update state on debounce (after some period) instead on every single character chagne - this should vastly improve performance
-  const debounceUpdate = useDebouncedCallback((content) => {
-    updateNoteBody(currentNoteId, content);
-  }, 300);
+  const extensions = useMemo(() => [
+    StarterKit.configure({
+      horizontalRule: false,
+      link: {
+        openOnClick: false,
+        enableClickSelection: true,
+      },
+    }),
+    HorizontalRule,
+    TextAlign.configure({ types: ["heading", "paragraph"] }),
+    TaskList,
+    TaskItem.configure({ nested: true }),
+    Highlight.configure({ multicolor: true }),
+    Image,
+    Typography,
+    Superscript,
+    Subscript,
+    Selection,
+    Placeholder.configure({
+      placeholder: ({ editor }) => {
+        const isEmpty = editor.isEmpty;
+        return isEmpty ? 'Start typing here...' : '';
+      },
+      showOnlyCurrent: true,
+      includeChildren: false,
+      emptyEditorClass: 'is-editor-empty',
+      emptyNodeClass: 'is-empty',
+    })
+  ], []); // Empty dependency array - extensions don't change
+
+  const props = useMemo(() => ({
+    attributes: {
+      autocomplete: "off",
+      autocorrect: "off",
+      autocapitalize: "off",
+      "aria-label": "Main content area, start typing to enter text.",
+      class: "simple-editor",
+    },
+  }), []);
 
   const editor = useEditor({
     immediatelyRender: false,
     shouldRerenderOnTransaction: false,
-    editorProps: {
-      attributes: {
-        autocomplete: "off",
-        autocorrect: "off",
-        autocapitalize: "off",
-        "aria-label": "Main content area, start typing to enter text.",
-        class: "simple-editor",
-      },
-    },
+    editorProps: props,
     autofocus: 'end',
-    extensions: [
-      StarterKit.configure({
-        horizontalRule: false,
-        link: {
-          openOnClick: false,
-          enableClickSelection: true,
-        },
-      }),
-      HorizontalRule,
-      TextAlign.configure({ types: ["heading", "paragraph"] }),
-      TaskList,
-      TaskItem.configure({ nested: true }),
-      Highlight.configure({ multicolor: true }),
-      Image,
-      Typography,
-      Superscript,
-      Subscript,
-      Selection,
-      // ImageUploadNode.configure({
-      //   accept: "image/*",
-      //   maxSize: MAX_FILE_SIZE,
-      //   limit: 3,
-      //   upload: handleImageUpload,
-      //   onError: (error) => console.error("Upload failed:", error),
-      // }),
-      Placeholder.configure({
-        placeholder: ({ editor }) => {
-          const isEmpty = editor.isEmpty;
-          return isEmpty ? 'Start typing here...' : '';
-        },
-        showOnlyCurrent: true,
-        includeChildren: false,
-        emptyEditorClass: 'is-editor-empty',
-        emptyNodeClass: 'is-empty',
-      })
-    ],
-    content: '',
-    onUpdate({ editor }) {
-      if (currentNoteId) {
-        // updateNoteBody(currentNoteId, editor.getJSON());
-        debounceUpdate(editor.getJSON());
-      }
-    }
-  })
+    extensions: extensions,
+    content: content || '',
+    onUpdate: useDebouncedCallback(() => {
+      const body = JSON.stringify(editor.getJSON());
+      saveUpdateNote(noteId, {title: noteTitle, body: body});
+    }, 500)
+  }, [extensions, props])
 
-  useEffect(() => {
-    if (!editor || !content) return
-
-    if (contentSetRef.current !== content) {
-      let parsedContent;
-      if (typeof content === 'string') {
-        try {
-          parsedContent = JSON.parse(content);
-        } catch (err) {
-          parsedContent = content;
-        }
-      } else {
-          parsedContent = content;
-      }
-
-      editor.commands.setContent(parsedContent);
-      contentSetRef.current = content;
-    }
-
-  }, [editor, content])
 
   const rect = useCursorVisibility({
     editor,
@@ -272,16 +242,10 @@ export function SimpleEditor({ onClose, content = '' }) {
               : {}),
           }}>
           {mobileView === "main" ? (
-            <MainToolbarContent
-              onHighlighterClick={() => setMobileView("highlighter")}
-              onLinkClick={() => setMobileView("link")}
-              isMobile={isMobile} 
-              className='!bg-background'
-              onClose={onClose}/>
+            <MainToolbarContent onHighlighterClick={() => setMobileView("highlighter")} onLinkClick={() => setMobileView("link")}
+              isMobile={isMobile} className='!bg-background' onClose={onClose}/>
           ) : (
-            <MobileToolbarContent
-              type={mobileView === "highlighter" ? "highlighter" : "link"}
-              onBack={() => setMobileView("main")} />
+            <MobileToolbarContent type={mobileView === "highlighter" ? "highlighter" : "link"} onBack={() => setMobileView("main")} />
           )}
         </Toolbar>
 
@@ -290,3 +254,5 @@ export function SimpleEditor({ onClose, content = '' }) {
     </div>
   );
 }
+
+export default memo(SimpleEditor)

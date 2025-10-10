@@ -7,21 +7,30 @@ import { NotesProvider } from '@/context/NotesContext'
 import NavBar from '@/components/NavBar/NavBar'
 import useAuth from '@/hooks/useAuth'
 import useNotes from '@/hooks/useNotes'
+import { useNotesContext } from '@/hooks/useNotesContext'
 
 
 export const LayoutOutlet = () => {
     const { loginOnPageRefresh } = useAuth();
     const { fetchNotes } = useNotes();
+    const { notes, currentNote, setCurrentNote, storageNoteIdKey } = useNotesContext();
 
     useEffect(() => {
         const init = async () => {
             const status = await loginOnPageRefresh();
             if (status.success) {
                 await fetchNotes();
+                const currentNoteId = localStorage.getItem(storageNoteIdKey);
+                setCurrentNote(note => notes.find(note => note.id === currentNoteId));
+                console.log(currentNote);
             }
         }
         init();
     }, [])
+
+    useEffect(() => {
+        console.log(notes)
+    }, [notes])
 
     return (
         <div className='h-screen flex flex-col'>

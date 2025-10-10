@@ -1,21 +1,22 @@
-import * as React from "react"
-import { useNavigate, useParams } from "react-router-dom"
 import { useState, useCallback } from "react"
+import { useNavigate, useParams } from "react-router-dom"
 
-import { ScrollArea } from "@/components/ui/scrollArea"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/tiptap-ui-primitive/input"
 import { ButtonGroup } from "@/components/ui/ButtonGroup"
+import { ScrollArea } from "@/components/ui/scrollArea"
 import NotesDropdownMenu from "@/components/NotesDropdownMenu"
 import DisappearingAlert from "@/components/DisappearingAlert"
+import { useNotesContext } from "@/hooks/useNotesContext"
 import useNotes from "@/hooks/useNotes"
 import { cn } from "@/lib/utils"
 
 
-const NotesListScrollMobile = ({ notesList }) => {
+const NotesList = () => {
     const navigate = useNavigate();
     const params = useParams();
     const { saveUpdateNote } = useNotes();
+    const { myNotes, sharedNotes, storageNoteIdKey, setCurrentNote } = useNotesContext();
     const [activeTab, setActiveTab] = useState('my');
     const [isRenaming, setIsRenaming] = useState(null);
     const [newTitle, setNewTitle] = useState("");
@@ -37,12 +38,11 @@ const NotesListScrollMobile = ({ notesList }) => {
         setNewTitle("");
     }, [newTitle, saveUpdateNote]);
 
-    const handleNoteClick = (noteId) => {
-        navigate(`/notes/${noteId}`);
+    const handleNoteClick = (item) => {
+        setCurrentNote(item);
+        localStorage.setItem(storageNoteIdKey, item.id);
+        navigate(`/notes/${item.id}`);
     };
-
-    const myNotes = notesList.filter(note => note.permission === 'O');
-    const sharedNotes = notesList.filter(note => note.permission !== 'O');
 
     const displayedNotes = activeTab === 'my' ? myNotes : sharedNotes;
 
@@ -55,7 +55,7 @@ const NotesListScrollMobile = ({ notesList }) => {
                     </DisappearingAlert>
                 </div>
             )}
-            
+
             <div className="flex flex-col h-full w-full">
                 {/* Tab Switch */}
                 <div className="px-4 py-3 border-b">
@@ -75,7 +75,7 @@ const NotesListScrollMobile = ({ notesList }) => {
                         {displayedNotes.length > 0 ? (
                             displayedNotes.map((item) => (
                                 <NoteItem key={item.id} item={item} isActive={params.noteId === item.id} isRenaming={isRenaming === item.id}
-                                    newTitle={newTitle} setNewTitle={setNewTitle} onNoteClick={handleNoteClick}
+                                    newTitle={newTitle} setNewTitle={setNewTitle} onNoteClick={() => handleNoteClick(item)}
                                     onRename={() => { setIsRenaming(item.id); setNewTitle(item.title); setRenameError(null); }}
                                     onRenameComplete={() => handleRename(item)} onRenameCancel={() => { setIsRenaming(null); setNewTitle(""); }}
                                 />
@@ -139,4 +139,4 @@ const NoteItem = ({ item, isActive, isRenaming, newTitle, setNewTitle, onNoteCli
     );
 };
 
-export default NotesListScrollMobile
+export default NotesList

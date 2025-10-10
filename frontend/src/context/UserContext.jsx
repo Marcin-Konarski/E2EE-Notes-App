@@ -8,11 +8,6 @@ export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-    // const value = useMemo(() => ({
-    //     user,
-    //     setUser,
-    // }), [user]);
-
     const login = (data) => {
         setUser({
             id: data.id,
@@ -29,12 +24,12 @@ export const UserProvider = ({ children }) => {
         setIsLoggedIn(false);
     };
 
-    const values = {
+    const values = useMemo(() => ({
         user,
         login,
         logout,
         isLoggedIn
-    };
+    }), [user, login, logout, isLoggedIn]);
 
     return (
         <UserContext.Provider value={values}>

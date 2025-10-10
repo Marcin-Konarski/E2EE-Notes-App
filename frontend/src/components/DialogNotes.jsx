@@ -7,12 +7,13 @@ import { Alert, AlertDescription } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
+import SearchBoxUsers from './SearchBoxUsers'
 
 
-const DialogNotes = ({ isSharing, showDialog, setShowDialog, currentNote, handleOnClick, error, isPending, buttonText, buttonTextPending, usersList = [], onShare }) => {
+const DialogNotes = ({ isSharing, showDialog, setShowDialog, currentNote, handleOnClick, error, isPending, usersList = [], onShare }) => {
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedUser, setSelectedUser] = useState(null)
-    const [selectedPermission, setSelectedPermission] = useState('read')
+    const [selectedPermission, setSelectedPermission] = useState('R')
 
     const filteredUsers = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -30,7 +31,7 @@ const DialogNotes = ({ isSharing, showDialog, setShowDialog, currentNote, handle
             await onShare(selectedUser, selectedPermission)
             setSearchQuery('')
             setSelectedUser(null)
-            setSelectedPermission('read')
+            setSelectedPermission('R')
         }
     }
 
@@ -39,13 +40,10 @@ const DialogNotes = ({ isSharing, showDialog, setShowDialog, currentNote, handle
         if (!open) {
             setSearchQuery('')
             setSelectedUser(null)
-            setSelectedPermission('read')
+            setSelectedPermission('R')
         }
     }
 
-    const getPermissionLabel = (permission) => {
-        return permission.charAt(0).toUpperCase() + permission.slice(1)
-    }
 
     if (isSharing) {
         return (
@@ -59,15 +57,17 @@ const DialogNotes = ({ isSharing, showDialog, setShowDialog, currentNote, handle
                     </DialogHeader>
 
                     <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="user-search">Search Users</Label>
+                        {/* <div className="space-y-2"> */}
+                            {/* <Label htmlFor="user-search">Search Users</Label>
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input id="user-search" placeholder="Type username..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
-                            </div>
-                        </div>
+                            </div> */}
+                            <SearchBoxUsers placeholder="Type username..." commandEmpty="No users found." heading="Users" users={usersList} selectedUser={selectedUser}
+                                            onSelectUser={setSelectedUser} selectedPermission={selectedPermission} onPermissionChange={setSelectedPermission} />
+                        {/* </div> */}
 
-                        {searchQuery.trim() && (
+                        {/* {searchQuery.trim() && (
                             <div className="max-h-48 overflow-y-auto space-y-1 rounded-md border p-2">
                                 {filteredUsers.length > 0
                                     ? (filteredUsers.map((user) => (
@@ -97,7 +97,7 @@ const DialogNotes = ({ isSharing, showDialog, setShowDialog, currentNote, handle
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="outline" size="sm">
-                                            {getPermissionLabel(selectedPermission)}
+                                            {selectedPermission}
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
@@ -124,7 +124,7 @@ const DialogNotes = ({ isSharing, showDialog, setShowDialog, currentNote, handle
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
-                        )}
+                        )} */}
 
                         {error && (
                             <Alert variant="destructive">

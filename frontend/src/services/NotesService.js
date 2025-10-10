@@ -23,6 +23,10 @@ class NotesService {
         return apiClient.delete(`/notes/notes/${id}/`);
     }
 
+    removeAccess(data) {
+        return apiClient.delete(`/notes/notes/remove_access/`, { data: data });
+    }
+
     shareNote(id, data) {
         return apiClient.post(`notes/notes/${id}/share/`, data);
     }

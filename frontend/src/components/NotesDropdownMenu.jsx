@@ -6,19 +6,29 @@ import { Button } from '@/components/ui/Button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/DropDownMenu'
 import useNotes from '@/hooks/useNotes'
 import DialogNotes from '@/components/DialogNotes'
+import { useNotesContext } from '@/hooks/useNotesContext'
+import { useUserContext } from '@/hooks/useUserContext'
 
 const NotesDropdownMenu = ({ currentNote, onRename }) => {
   const navigate = useNavigate();
-  const { deleteNote, listUsers, shareNote, isLoading, error } = useNotes();
+  const { user } = useUserContext();
+  const { removeNote } = useNotesContext();
+  const { deleteNote, removeAccess, listUsers, shareNote, isLoading, error } = useNotes();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [usersList, setUsersList] = useState([]);
   const sharingPermissions = ['O', 'S'];
 
   const handleDelete = async () => {
-    const result = await deleteNote(currentNote.id)
+    let result
+    if (currentNote.permission === 'O') {
+      result = await deleteNote(currentNote.id);
+    } else {
+      result = await removeAccess(currentNote.id, user.id);
+    }
 
     if (result.success) {
+      removeNote(currentNote.id);
       setShowDeleteDialog(false)
       navigate('/notes')
     }
@@ -28,7 +38,8 @@ const NotesDropdownMenu = ({ currentNote, onRename }) => {
     const result = await listUsers()
 
     if (result.success) {
-      setUsersList(result.data)
+      const updatedUsers = result.data.filter(u => u.id !== user.id && u.username !== currentNote.owner); // User list without user that is logged in (no point sharing to myself)
+      setUsersList(updatedUsers)
       setShowShareDialog(true)
     }
   }

@@ -199,3 +199,9 @@ class GetPublicKeySerializer(serializers.Serializer):
     keys = UserKeyInfoSerializer(many=True, include_permissions=True)
     class Meta:
         fields = ['id', 'keys']
+
+class RemoveAccessToNote(serializers.Serializer):
+    note = serializers.UUIDField(required=True)
+    user = serializers.UUIDField(required=True)
+    class Meta:
+        fields = ['note', 'user']

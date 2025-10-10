@@ -14,7 +14,6 @@ const NavBar = () => {
     const navigate = useNavigate();
     const { user, logout } = useUserContext();
     const { createEncryptedNote, error } = useNotes();
-    const { notes, currentNoteId, setCurrentNoteId, storageNoteIdKey } = useNotesContext();
     const [notesNavBar, setNotesNavBar] = useState({ title: "Notes", url: "/notes", });
 
     const handleNewNoteCreation = async () => {
@@ -27,22 +26,10 @@ const NavBar = () => {
     }
 
     useEffect(() => {
-        if (!user) return
-
-        const savedNoteId = localStorage.getItem(storageNoteIdKey);
-        if (!savedNoteId) return
-        if (notes.find(note => note.id === savedNoteId)) {
-            setCurrentNoteId(null);
-        }
-    }, [user]);
-
-    useEffect(() => {
-
         if (user) {
             setNotesNavBar(c => ({...c, items: [
                     {
                         title: "New Note",
-                        // description: "Create new note",
                         icon: <FilePlus className="size-5 shrink-0" />,
                         url: "/notes/new",
                         isButton: true,
@@ -50,7 +37,6 @@ const NavBar = () => {
                     },
                     {
                         title: "Notes List",
-                        // description: "Edit last note",
                         icon: <Book className="size-5 shrink-0" />,
                         url: "/notes",
                     },
@@ -59,7 +45,7 @@ const NavBar = () => {
         } else {
             setNotesNavBar(({items, ...c}) => c) // Remove `items` from notesNavBar
         }
-    }, [user, currentNoteId]); // Update navbar also when currentNoteId changes
+    }, [user]);
 
 
     const logo = {
@@ -75,24 +61,6 @@ const NavBar = () => {
             url: "/"
         },
         notesNavBar,
-        {
-            title: "Ecnryption",
-            url: "/keys",
-            items: [
-                {
-                    title: "My keys",
-                    description: "View your private key",
-                    icon: <Key className="size-5 shrink-0 mt-1" />,
-                    url: "/keys",
-                },
-                {
-                    title: "Ala ma kota",
-                    description: "ble ble",
-                    icon: <Sunset className="size-5 shrink-0" />,
-                    url: "/keys",
-                },
-            ],
-        },
         {
             title: "Source Code",
             url: "https://github.com/Marcin-Konarski/Arx",

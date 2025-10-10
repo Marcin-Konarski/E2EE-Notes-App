@@ -1,4 +1,4 @@
-import NotesListScrollMobile from '@/components/NotesListScrollMobile'
+import NotesList from '@/components/NotesList'
 import { useNotesContext } from '@/hooks/useNotesContext';
 import React from 'react'
 
@@ -8,7 +8,7 @@ const Blank = () => {
     // On desktop this is empty page but on mobile it's notes list
     return (
         <div className='lg:hidden'>
-            <NotesListScrollMobile notesList={notes} />
+            <NotesList notesList={notes} />
         </div>
     )
 }
