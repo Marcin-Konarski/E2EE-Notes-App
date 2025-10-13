@@ -1,55 +1,91 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import { useUserContext } from '@/hooks/useUserContext';
 import useAuth from '@/hooks/useAuth';
-import AlertSuccess from '@/components/ui/AlertSuccess';
 import AlertError from '@/components/ui/AlertError';
-import { Button } from '@/components/ui/Button';
-
+import AlertSuccess from '@/components/ui/AlertSuccess';
+import { confirmCognitoSignUp } from '@/cryptography/AWS_Cognito/cognito';
+import EmailVerificationForm from '@/components/EmailVerificationForm';
 
 
 const EmailVerification = () => {
+  const createdAccount = useLocation().state?.createdAccount;
+  const email = useLocation().state?.email;
+  const username = useLocation().state?.username;
   const navigate = useNavigate();
-  const { activationKey } = useParams();
-  const [status, setStatus] = useState('loading');
-  const { verifyEmail, isLoading, error } = useAuth();
-  const { user } = useUserContext();
-
+  const { verifyEmail, error, setError } = useAuth();
+  const [status, setStatus] = useState('pending');
+  const [validating, setValidating] = useState(false);
 
   useEffect(() => {
-    const verify = async () => {
-      try {
-        const result = await verifyEmail(activationKey);
+    console.log('username', username)
+  }, [username])
 
-        if (result.success) {
-          setStatus('success');
-          navigate('/');
-        } else {
-          setStatus('error');
-        }
-      } catch (err) {
+  const handleValidate = async (username, otp) => {
+    setValidating(true);
+    setError(null);
+
+    try {
+      console.log(username, otp)
+      await confirmCognitoSignUp(username, otp);
+
+      const backendStatus = await verifyEmail(email); // If we get here, Cognito confirmation was successful
+
+      if (backendStatus.success) {
+        setStatus('success');
+        setTimeout(() => navigate('/'), 1500);
+      } else {
+        setError(backendStatus.error || 'Failed to verify email on backend');
         setStatus('error');
       }
+
+    } catch (err) {
+      console.error('Validation error:', err);
+      setError(err.message || 'Invalid verification code. Please try again.');
+      setStatus('error');
+    } finally {
+      setValidating(false);
     }
-
-    verify();
-  }, [activationKey])
-
-
-
-  if (isLoading || status === 'loading') {
-    return <AlertSuccess title={'Hold On'} className={'!block !p-4 mx-auto max-w-md'} green={false}>Verifying your email...</AlertSuccess>;
   }
+
 
   if (status === 'success') {
-    return <AlertSuccess title={`Welcome ${user?.username}!`} className={'!block !p-4 mx-auto max-w-md'} green={true}> Redirecting....</AlertSuccess>;
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <AlertSuccess title={`Welcome ${username}!`} className="!block !p-4 w-full max-w-md" green={true}>
+          Redirecting....
+        </AlertSuccess>
+      </div>
+    );
   }
 
-  return (<div className='flex flex-col max-w-full space-y-5'>
-    <AlertError title={'ERROR'} className={'!block !p-4 mx-auto max-w-md'}>{error}</AlertError>
-    <Button variant='secondary'>Resend Email</Button>
-  </div>);
+  return (
+    <div className="flex justify-center items-center min-h-[400px] px-4">
+      <div className="flex flex-col w-full max-w-md space-y-6">
+
+        {error && (
+          <AlertError title="ERROR" className="!block !p-4 w-full">
+            {error}
+          </AlertError>
+        )}
+
+        {createdAccount === 'successful' && !error && (
+          <AlertSuccess title="Success" className="!block !p-4 w-full" green={true}>
+            <div className="space-y-3">
+              <p>
+                Account was created successfully. Please check your email to verify your account. 
+                Did not receive your email? Check spam or click below to resend.
+              </p>
+            </div>
+          </AlertSuccess>
+        )}
+
+        <EmailVerificationForm username={username} onValidate={handleValidate} isValidating={validating}/>
+
+      </div>
+    </div>
+  );
 
 }
 

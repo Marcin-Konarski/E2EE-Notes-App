@@ -1,4 +1,4 @@
-import { createContext, useMemo, useState } from "react";
+import { createContext, useMemo, useRef, useState } from "react";
 import { clearAccessToken } from "@/services/ApiClient";
 import UserService from "@/services/UserService";
 
@@ -7,6 +7,7 @@ export const UserContext = createContext(undefined);
 export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const cognitoSession = useRef(null);
 
     const login = (data) => {
         setUser({
@@ -28,7 +29,8 @@ export const UserProvider = ({ children }) => {
         user,
         login,
         logout,
-        isLoggedIn
+        isLoggedIn,
+        cognitoSession
     }), [user, login, logout, isLoggedIn]);
 
     return (

@@ -10,14 +10,18 @@ import AlertLoadingError from '@/components/AlertLoadingError';
 
 const Register = () => {
   const navigate = useNavigate();
-  const { register, isLoading, error } = useAuth();
-
+  const { register, cognitoRegister, isLoading, error } = useAuth();
 
   const onSubmit = async (data) => { // data has following structure: { data.email, data.username, data.password, data.confirm }
-    const {confirm, ...registerData} = data; // Remove confirm password as backend doesn't require it
-    const status = await register(registerData);
-    if (status.success)
-      navigate('/login', { state: { createdAccount: "successful" } } );
+    const {confirm, ...registerData } = data;
+    const cognitoStatus = await cognitoRegister(registerData);
+    if (cognitoStatus.success) {
+      console.log()
+      const status = await register(registerData);
+      if (status.success) {
+        navigate('/verify', { state: { createdAccount: "successful", email: data.email, username: data.username } } );
+      }
+    }
   }
 
   const form = useForm({

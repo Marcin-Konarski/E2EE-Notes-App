@@ -67,11 +67,11 @@ class UserKeySerializer(serializers.ModelSerializer):
         return data
 
 class UserActivationSerializer(serializers.Serializer):
-    activation_key = serializers.CharField(required=True, allow_blank=False)
+    email = serializers.EmailField(required=True, allow_blank=False)
 
     def validate_activation_key(self, value):
         if not value or value.strip() == "":
-            raise serializers.ValidationError("Activation key is required and cannot be empty.")
+            raise serializers.ValidationError("Email is required and cannot be empty.")
         return value.strip()
 
 class ResendActivationEmailSerializer(serializers.Serializer):

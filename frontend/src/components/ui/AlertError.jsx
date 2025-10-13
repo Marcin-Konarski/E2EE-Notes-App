@@ -14,21 +14,6 @@ const AlertError = ({ title, children, className }) => {
             </AlertDescription>
         </Alert>
     )
-
-
-
-
-    // return (
-    //     <Alert variant='destructive' className='!block !p-4 absolute -top-32 left-0 right-0 z-10'>
-    //         <div className='flex items-center gap-2'>
-    //             <OctagonX className='h-4 w-4' />
-    //             <AlertTitle className='!mb-0'>{title}</AlertTitle>
-    //         </div>
-    //         <AlertDescription>
-    //             {children}
-    //         </AlertDescription>
-    //     </Alert>
-    // )
 }
 
 export default AlertError

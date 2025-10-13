@@ -10,6 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@aws-crypto/client-browser": "^4.2.1",
+    "@aws-sdk/client-cognito-identity-provider": "^3.908.0",
+    "@aws-sdk/util-base64": "^3.374.0",
     "@floating-ui/react": "^0.27.16",
     "@hookform/resolvers": "^5.2.1",
     "@radix-ui/react-accordion": "^1.2.12",
@@ -38,6 +41,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
+    "input-otp": "^1.4.2",
     "lodash.throttle": "^4.1.1",
     "lucide-react": "^0.544.0",
     "react": "^19.1.1",

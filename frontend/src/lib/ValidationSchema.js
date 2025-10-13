@@ -59,10 +59,14 @@ const UpdatePasswordSchema = z.object({
     path: ["confirmPassword"]
 });
 
+const EmailVerificationFormSchema = z.object({
+    username: z.string().min(1, {message: 'This field is required.'}),
+});
+
 // const userId = z.string().refine(async (id) => { //TODO: elaborate on this with zod
 //   // verify that ID exists in database
 //   return true;
 // });
 
 
-export { RegisterFormSchema, LoginFormSchema, UpdateUserDataSchema, UpdatePasswordSchema }
+export { RegisterFormSchema, LoginFormSchema, UpdateUserDataSchema, UpdatePasswordSchema, EmailVerificationFormSchema }

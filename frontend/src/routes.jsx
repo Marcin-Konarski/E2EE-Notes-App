@@ -22,7 +22,7 @@ const router = createBrowserRouter([
         { path: "profile", Component: Profile },
         { path: "login", Component: Login },
         { path: "signup", Component: Register },
-        { path: "verify/:activationKey", Component: EmailVerification},
+        { path: "verify", Component: EmailVerification},
         { path: "notes", Component: Notes, errorElement: <Blank />, children:
           [
             { index: true, Component: Blank},

@@ -1,14 +1,15 @@
 import { useState } from 'react'
-import { useUserContext } from './useUserContext';
 import EmailService from '@/services/EmailService';
-import { setAccessToken } from '@/services/ApiClient';
 import UserService from '@/services/UserService';
+import { setAccessToken } from '@/services/ApiClient';
+import { useUserContext } from '@/hooks/useUserContext';
 import useNotes from '@/hooks/useNotes';
+import { cognitoSignIn, cognitoSignUp } from '@/cryptography/AWS_Cognito/cognito';
 
 const useAuth = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-    const { user, login, logout } = useUserContext();
+    const { user, login, logout, cognitoSession } = useUserContext();
     const { fetchNotes } = useNotes();
 
     const register = async (data) => {
@@ -28,13 +29,30 @@ const useAuth = () => {
         }
     };
 
+    const cognitoRegister = async (data) => {
+        setIsLoading(true);
+        setError(null);
 
-    const verifyEmail = async (activationKey) => {
+        console.log(data);
+        const { email, username, password } = data;
+        try{
+            const cognitoResponse = await cognitoSignUp(email, username, password);
+            console.log(cognitoResponse)
+            return { success: true };
+        } catch (err) {
+            const errorMessage = 'Registration to AWS Cognito Failed'
+            return { success: false, error: errorMessage};
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const verifyEmail = async (email) => {
         setIsLoading(true);
         setError(null);
 
         try {
-            const response = await EmailService.confirmEmail({activation_key: activationKey});
+            const response = await EmailService.confirmEmail({email: email});
             const token = response.data.access_token;
 
             setAccessToken(token);
@@ -52,7 +70,6 @@ const useAuth = () => {
         }
     };
 
-
     const loginUser = async (credentials) => {
         setIsLoading(true);
         setError(null);
@@ -61,19 +78,23 @@ const useAuth = () => {
             const tokenResponse = await UserService.getTokens(credentials);
             setAccessToken(tokenResponse.data.access);
             const userResponse = await UserService.getUserDetails();
+            const { username, password } = credentials;
+            const cognitoResponse = await cognitoSignIn(username, password);
+            console.log(cognitoResponse)
+            cognitoSession.current = cognitoResponse;
             login(userResponse.data);
             fetchNotes(); // Upon login fetch user's notes            
 
             return {success: true}
         } catch (err) {
-            const errorMessage = err.response?.data?.message || 'Login Failed';
+            console.log(err)
+            let errorMessage = err.response?.data?.detail || err.response?.data?.message || err?.message || 'Login Failed';
             setError(errorMessage);
             return {success: false, error: errorMessage};
         } finally {
             setIsLoading(false);
         }
     };
-
 
     const loginOnPageRefresh = async () => {
         setIsLoading(true);
@@ -177,7 +198,7 @@ const useAuth = () => {
         }
     };
 
-    return { register, verifyEmail, loginUser, loginOnPageRefresh, updateUser, changePassword, resendVerificationEmail, deleteUser, isLoading, error };
+    return { register, cognitoRegister, verifyEmail, loginUser, loginOnPageRefresh, updateUser, changePassword, resendVerificationEmail, deleteUser, isLoading, error, setError };
 }
 
 export default useAuth

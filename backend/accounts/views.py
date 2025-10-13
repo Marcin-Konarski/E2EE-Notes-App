@@ -63,11 +63,11 @@ class UserViewSet(ModelViewSet):
     def create(self, request, *args, **kwargs):
         try:
             response = super().create(request, *args, **kwargs)
-            if 201 == response.status_code: # Only if response status code is 201 send email verification mail to the specified mail in the JSON request
-                user_id = response.data.get('id')
-                username = response.data.get('username')
-                email = response.data.get('email')
-                send_verification_mail.delay(user_id, username, email)
+            # if 201 == response.status_code: # Only if response status code is 201 send email verification mail to the specified mail in the JSON request
+            #     user_id = response.data.get('id')
+            #     username = response.data.get('username')
+            #     email = response.data.get('email')
+            #     send_verification_mail.delay(user_id, username, email)
             return (response)
         except Exception as e: # In order to return the message of what went wrong with the account creation:
             serializer = self.get_serializer(data=request.data)
@@ -169,14 +169,14 @@ class UserActivationViewSet(APIViewBase):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        activation_key = serializer.validated_data['activation_key']
-        user_id = verify_activation_key(activation_key)
+        email = serializer.validated_data['email']
+        # user_id = verify_activation_key(activation_key)
 
-        if not user_id:
-            return Response({'status': 'Invalid or expired activation_key'}, status=status.HTTP_400_BAD_REQUEST)
+        # if not user_id:
+        #     return Response({'status': 'Invalid or expired activation_key'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            user = User.objects.get(id=user_id)
+            user = User.objects.get(email=email)
 
             # if user.is_verified:
             #     return Response({'status': 'Email already verified'}, status=status.HTTP_200_OK)

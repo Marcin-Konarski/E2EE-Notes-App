@@ -57,74 +57,8 @@ const DialogNotes = ({ isSharing, showDialog, setShowDialog, currentNote, handle
                     </DialogHeader>
 
                     <div className="space-y-4">
-                        {/* <div className="space-y-2"> */}
-                            {/* <Label htmlFor="user-search">Search Users</Label>
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                                    <Input id="user-search" placeholder="Type username..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
-                            </div> */}
                             <SearchBoxUsers placeholder="Type username..." commandEmpty="No users found." heading="Users" users={usersList} selectedUser={selectedUser}
                                             onSelectUser={setSelectedUser} selectedPermission={selectedPermission} onPermissionChange={setSelectedPermission} />
-                        {/* </div> */}
-
-                        {/* {searchQuery.trim() && (
-                            <div className="max-h-48 overflow-y-auto space-y-1 rounded-md border p-2">
-                                {filteredUsers.length > 0
-                                    ? (filteredUsers.map((user) => (
-                                            <div key={user.id} onClick={() => setSelectedUser(user)}
-                                                className={`flex items-center justify-between rounded-sm px-3 py-2 cursor-pointer transition-colors hover:bg-accent ${selectedUser?.id === user.id ? 'bg-accent' : ''}`}>
-                                            <span className="text-sm font-medium">{user.username}</span>
-                                            {selectedUser?.id === user.id && (
-                                                <Check className="size-4 text-primary" />
-                                            )}
-                                            </div>
-                                        )))
-                                    : (
-                                    <div className="py-6 text-center text-sm text-muted-foreground">
-                                        No users found
-                                    </div>)
-                                }
-                            </div>
-                        )}
-
-                        {selectedUser && (
-                            <div className="flex items-center justify-between rounded-md border p-3 bg-muted/50">
-                                <div className="space-y-0.5">
-                                    <p className="text-sm font-medium">Selected User</p>
-                                    <p className="text-sm text-muted-foreground">{selectedUser.username}</p>
-                                </div>
-                            
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" size="sm">
-                                            {selectedPermission}
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuGroup>
-                                            <DropdownMenuItem onClick={() => setSelectedPermission('R')} className="cursor-pointer">
-                                                <span className="flex items-center justify-between w-full">
-                                                Read
-                                                {selectedPermission === 'read' && <Check className="size-4" />}
-                                                </span>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => setSelectedPermission('W')} className="cursor-pointer">
-                                                <span className="flex items-center justify-between w-full">
-                                                Write
-                                                {selectedPermission === 'write' && <Check className="size-4" />}
-                                                </span>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => setSelectedPermission('S')} className="cursor-pointer">
-                                                <span className="flex items-center justify-between w-full">
-                                                Share
-                                                {selectedPermission === 'share' && <Check className="size-4" />}
-                                                </span>
-                                            </DropdownMenuItem>
-                                        </DropdownMenuGroup>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-                        )} */}
 
                         {error && (
                             <Alert variant="destructive">

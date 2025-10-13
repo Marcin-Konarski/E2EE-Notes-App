@@ -2,17 +2,9 @@ x-django-api: &django-api
   build:
     context: ./backend
     dockerfile: Dockerfile
-  environment:
-    HOST: postgres
-    PORT: 5432
-    DB_NAME: arx_db
-    USER: arx_user
-    PASSWORD: quujmsit
-    CELERY_BROKER_URL: redis://redis:6379/1     # TODO: ADD ENVIRONMENT VARIABLES FOR SENDING EMAILS
-    SIGNING_KEY: c59cae2303ed3e6c534fad7330de7813eefd0c4ff36cf29b41abe4ad11ffd0a764c3fd7ee586c72f9b523cbdd5f37cb99b77a0ec1f80abaa7211929dfcdb64b8 # 512 bits signing key from https://jwtsecrets.com/#generator
   depends_on:
     - postgres
-    - redis
+    # - redis
 
 services:
 
@@ -26,17 +18,19 @@ services:
     environment:
       POSTGRES_DB: arx_db
       POSTGRES_USER: arx_user
-      POSTGRES_PASSWORD: quujmsit
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
     volumes:
       - pgdata:/var/lib/postgresql/data/
+    secrets:
+      - db_password
 
   # Redis as message broker
-  redis:
-    image: redis:8.2.1-alpine
-    container_name: redis
-    ports:
-      - "6379:6379"
-    restart: unless-stopped
+  # redis:
+  #   image: redis:8.2.1-alpine
+  #   container_name: redis
+  #   ports:
+  #     - "6379:6379"
+  #   restart: unless-stopped
 
   # Django backend
   backend:
@@ -49,12 +43,12 @@ services:
       - ./backend:/app/
 
   # Celery for tasks
-  celery:
-    <<: *django-api
-    container_name: celery
-    command: celery -A app worker --loglevel=info
-    volumes:
-      - ./backend:/app/ #! After emails are working perfectly delete this volume entirely from celery. It will be enough to just build it
+  # celery:
+  #   <<: *django-api
+  #   container_name: celery
+  #   command: celery -A app worker --loglevel=info
+  #   volumes:
+  #     - ./backend:/app/ #! After emails are working perfectly delete this volume entirely from celery. It will be enough to just build it
 
   # React frontend
   frontend:
@@ -80,3 +74,8 @@ volumes:
 #Also .dockerignore requires those `node_modules` and `package-lock.json` to ensure they are not copied to the container but freshly installed
 # Now, node_modules is built and used inside the container, with the correct Linux binaries
 # Thanks to this solution code is hot-reloaded from host and dependencies are always correct for the container and nothing breaks
+
+
+secrets:
+  db_password:
+    file: ./db_password.txt

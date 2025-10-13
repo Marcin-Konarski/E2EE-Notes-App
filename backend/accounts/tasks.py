@@ -4,9 +4,6 @@ from celery import shared_task
 
 from .account_activation import create_user_account_activation_link
 
-import logging
-logger = logging.getLogger(__name__)
-
 
 @shared_task
 def send_verification_mail(user_id, username, email):
@@ -20,7 +17,6 @@ def send_verification_mail(user_id, username, email):
                 'link': link
             }
         )
-        message.send([email]) # Requires a list of recipiants
-        logger.info(f'Email Sent: {email}')        
+        message.send([email]) # Requires a list of recipiants  
     except BadHeaderError as e:
         print(e)
