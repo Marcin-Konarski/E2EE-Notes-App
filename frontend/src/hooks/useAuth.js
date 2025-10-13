@@ -47,7 +47,7 @@ const useAuth = () => {
         }
     };
 
-    const verifyEmail = async (email) => {
+    const verifyEmail = async (email, username, password) => {
         setIsLoading(true);
         setError(null);
 
@@ -56,6 +56,7 @@ const useAuth = () => {
             const token = response.data.access_token;
 
             setAccessToken(token);
+            await cognitoSignIn(username, password);
 
             const userResponse = await UserService.getUserDetails();
             login(userResponse.data);

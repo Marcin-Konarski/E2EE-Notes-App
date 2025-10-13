@@ -80,18 +80,7 @@ const confirmCognitoSignUp = async (username, code) => {
   };
   try {
     const command = new ConfirmSignUpCommand(params);
-    const { AuthenticationResult } = await cognitoClient.send(command);
-    if (AuthenticationResult) {
-      sessionStorage.setItem("idToken", AuthenticationResult.IdToken || "");
-      sessionStorage.setItem(
-        "accessToken",
-        AuthenticationResult.AccessToken || "",
-      );
-      sessionStorage.setItem(
-        "refreshToken",
-        AuthenticationResult.RefreshToken || "",
-      );
-    }
+    await cognitoClient.send(command);
     return true;
   } catch (error) {
     console.error("Error confirming sign up: ", error);

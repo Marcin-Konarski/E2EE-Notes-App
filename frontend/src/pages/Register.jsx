@@ -19,7 +19,8 @@ const Register = () => {
       console.log()
       const status = await register(registerData);
       if (status.success) {
-        navigate('/verify', { state: { createdAccount: "successful", email: data.email, username: data.username } } );
+        // One must pass all credentials as AWS cognito requires them in order to login user. Password is deleted from memory as soon as possible
+        navigate('/verify', { state: { createdAccount: "successful", email: data.email, username: data.username, password: data.password } } );
       }
     }
   }
@@ -67,7 +68,7 @@ const Register = () => {
 
   return (
     <div className='flex flex-col items-center justify-center h-full'>
-      <AlertLoadingError isLoading={isLoading} error={error}>Registering...</AlertLoadingError>
+      <AlertLoadingError isLoading={isLoading} error={error}>Loggin in...</AlertLoadingError>
       <LoginRegisterForm title='Create an account' redirect={redirect} inputs={inputs} form={form} button='Sign Up' onSubmit={onSubmit}/>
     </div>
   );

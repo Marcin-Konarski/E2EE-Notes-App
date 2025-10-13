@@ -13,8 +13,9 @@ const EmailVerification = () => {
   const createdAccount = useLocation().state?.createdAccount;
   const email = useLocation().state?.email;
   const username = useLocation().state?.username;
+  let password = useLocation().state?.password;
   const navigate = useNavigate();
-  const { verifyEmail, error, setError } = useAuth();
+  const { loginUser, verifyEmail, error, setError } = useAuth();
   const [status, setStatus] = useState('pending');
   const [validating, setValidating] = useState(false);
 
@@ -30,9 +31,12 @@ const EmailVerification = () => {
       console.log(username, otp)
       await confirmCognitoSignUp(username, otp);
 
-      const backendStatus = await verifyEmail(email); // If we get here, Cognito confirmation was successful
+      console.log(email, username, password)
+      const backendStatus = await verifyEmail(email, username, password); // If we get here, Cognito confirmation was successful
+      password = ''
 
       if (backendStatus.success) {
+        await loginUser()
         setStatus('success');
         setTimeout(() => navigate('/'), 1500);
       } else {
@@ -41,6 +45,7 @@ const EmailVerification = () => {
       }
 
     } catch (err) {
+      password = ''
       console.error('Validation error:', err);
       setError(err.message || 'Invalid verification code. Please try again.');
       setStatus('error');
