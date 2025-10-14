@@ -44,7 +44,7 @@ services:
     <<: *django-api
     container_name: backend
     ports:
-      - "8000:8000"
+      - "8000"
     entrypoint: ["/app/entrypoint.sh"] # This is a script that runs database migrations
     volumes:
       - ./backend:/app/
@@ -66,26 +66,30 @@ services:
     restart: unless-stopped
     networks:
       - app-network
+    environment:
+      - VITE_API_URL=https://api
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+      - frontend_dist:/app/dist
     ports:
       - "8080:8080"
-    environment:
-    - VITE_API_URL=http://127.0.0.1:8000
-    volumes:
-      - ./frontend:/app/
-      - frontend_node_modules:/app/node_modules
 
   nginx:
     build:
       context: ./nginx
       dockerfile: Dockerfile
+    container_name: nginx
     restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
     networks:
       - app-network
     depends_on:
       - frontend
+    volumes:
+      - ./frontend/dist:/usr/share/nginx/html
+    ports:
+      - "80:80"
+      - "443:443"
 
 networks:
   app-network:
@@ -98,9 +102,10 @@ secrets:
 volumes:
   pgdata:
   frontend_node_modules:
+  frontend_dist:
 
 # Mouting a volume ./frontend:/app overwrites everything in app, including /app/node_modules which causes werid issue caused by copied node_modules and package-lock.json
 # By mounting a named volume at /app/node_modules we "protect" that folder from being overwritten in container by host
-#Also .dockerignore requires those `node_modules` and `package-lock.json` to ensure they are not copied to the container but freshly installed
+# Also .dockerignore requires those `node_modules` and `package-lock.json` to ensure they are not copied to the container but freshly installed
 # Now, node_modules is built and used inside the container, with the correct Linux binaries
 # Thanks to this solution code is hot-reloaded from host and dependencies are always correct for the container and nothing breaks

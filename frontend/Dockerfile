@@ -1,6 +1,6 @@
 FROM node:24-slim
 
-RUN apt-get update 
+RUN apt-get update
 
 RUN groupadd app && useradd -m -g app app
 
@@ -14,7 +14,8 @@ USER app
 
 COPY . .
 
-EXPOSE 8080
+RUN npm run build
 
-# TODO: set up for productiono with npm build!!
-CMD ["npm", "run", "dev"]
+#EXPOSE 8080
+
+# CMD ["npm", "run", "dev"]
