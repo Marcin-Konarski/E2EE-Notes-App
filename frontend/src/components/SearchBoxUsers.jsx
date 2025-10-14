@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react'
 import { Check } from 'lucide-react'
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/Command"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/DropDownMenu'
 import { Button } from '@/components/ui/Button'
 

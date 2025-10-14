@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/InputOTP";
-import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/Form';
 import { EmailVerificationFormSchema } from '@/lib/ValidationSchema';
 
 const EmailVerificationForm = ({ username, onValidate, isValidating }) => {

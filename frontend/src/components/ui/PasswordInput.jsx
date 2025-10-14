@@ -2,7 +2,7 @@ import * as React from 'react'
 import { EyeIcon, EyeOffIcon } from 'lucide-react'
 
 import { Input } from '@/components/ui/Input'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/Button'
 import { cn } from "@/lib/utils"
 
 const PasswordInput = React.forwardRef(({ className, ...props }, ref) => {

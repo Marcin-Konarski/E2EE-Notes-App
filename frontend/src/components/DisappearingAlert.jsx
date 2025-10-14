@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert'
 
 
 const DisappearingAlert = ({ title, time = '5s', variant = 'default', color, className = '', children, ...props }) => {
