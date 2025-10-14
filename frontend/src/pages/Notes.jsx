@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 
 import { useUserContext } from "@/hooks/useUserContext";
 import { useNotesContext } from "@/hooks/useNotesContext";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/Resizable"
 import NotesList from "@/components/NotesList";
 import EditorAnonymous from "@/pages/EditorAnonymous";
 
