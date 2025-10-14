@@ -13,4 +13,5 @@ COPY . .
 
 EXPOSE 8000
 
+# TODO: for production set up uvicorn or other production ready server!!
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

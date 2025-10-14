@@ -16,4 +16,5 @@ COPY . .
 
 EXPOSE 8080
 
+# TODO: set up for productiono with npm build!!
 CMD ["npm", "run", "dev"]
