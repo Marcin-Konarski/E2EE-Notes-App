@@ -1,22 +1,27 @@
-import config from "@/cryptography/AWS_Cognito/config";
+import config from "@/cryptography/AWS_Cognito/Config";
 
 const generateHash = async (hashType, messageData) => {
     const clientSecret = import.meta.env.VITE_CLIENT_SECRET;
     const encoder = new TextEncoder();
     const keyData = encoder.encode(clientSecret);    
 
-    const key = await window.crypto.subtle.importKey("raw", keyData, hashType, false, ['sign']);
-    console.log(key)
+    const key = await window.crypto.subtle.importKey(
+        "raw",
+        keyData,
+        hashType,
+        false,
+        ['sign']
+    );
 
-    const signature = await window.crypto.subtle.sign(hashType.name, key, messageData);
-    console.log(signature);
+    const signature = await window.crypto.subtle.sign(
+        hashType.name,
+        key,
+        messageData
+    );
 
     const hashArray = Array.from(new Uint8Array(signature));
-    console.log(hashArray)
     const hashBinary = hashArray.map(b => String.fromCharCode(b)).join('');
-    console.log(hashBinary)
     const secretHash = btoa(hashBinary);
-    console.log(secretHash)
 
     return secretHash;
 };
@@ -39,7 +44,6 @@ const makeCognitoPasswordHash = async (username) => {
     const message = username + config.clientId;
 
     const hash = await generateHMACHash(message);
-    console.log(hash)
 
     return hash;
 }

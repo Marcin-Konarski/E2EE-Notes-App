@@ -7,7 +7,8 @@ export const UserContext = createContext(undefined);
 export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const cognitoSession = useRef(null);
+    const userKeyPair = useRef({});
+    const publicKey = useRef({});
 
     const login = (data) => {
         setUser({
@@ -23,6 +24,8 @@ export const UserProvider = ({ children }) => {
         clearAccessToken();
         setUser(null);
         setIsLoggedIn(false);
+        userKeyPair.current = {};
+        publicKey.current = {};
     };
 
     const values = useMemo(() => ({
@@ -30,7 +33,8 @@ export const UserProvider = ({ children }) => {
         login,
         logout,
         isLoggedIn,
-        cognitoSession
+        userKeyPair,
+        publicKey,
     }), [user, login, logout, isLoggedIn]);
 
     return (

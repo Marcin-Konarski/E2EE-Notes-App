@@ -17,7 +17,6 @@ const useNotes = () => {
         try {
             const response = await NotesService.fetchNotes();
             updateNotes(response.data);
-            console.log(notes)
             return { success: true, data: response.data };
         } catch (err) {
             const errorMessage = err.response?.data?.message || 'Failed to fetch notes';
@@ -34,7 +33,6 @@ const useNotes = () => {
 
         try {
             const response = await NotesService.createNote(data);
-            console.log(response)
             addNote({...response.data, permission: 'O'});
             return { success: true, data: response.data };
         } catch (err) {
@@ -58,7 +56,6 @@ const useNotes = () => {
 
         try {
             const response = await NotesService.createNote(newData);
-            console.log(response)
             addNote({...response.data, permission: 'O'}); // Add owner permission here as well in order to render newly created notes in the `My notes` section
             return { success: true, data: response.data };
         } catch (err) {
@@ -76,7 +73,6 @@ const useNotes = () => {
         try {
             updateNote(noteId, json); // Update note in memory regardless of whether saving to backend was successful or not
             const response = await NotesService.updateNote(noteId, json);
-            console.log(response)
             return {success: true }
         } catch (err) {
             const errorMessage = err.response?.data?.message || 'Failed to update note';
@@ -106,7 +102,6 @@ const useNotes = () => {
         setError(null);
 
         try {
-            console.log(noteId, userId)
             await NotesService.removeAccess({note: noteId, user: userId});
             return { success: true };
         } catch (err) {
@@ -125,7 +120,6 @@ const useNotes = () => {
 
         try {
             const response = await UserService.getUsersList();
-            console.log(response.data)
             return { success: true, data: response.data };
         } catch (err) {
             const errorMessage = err.response?.data?.message || 'Failed to obtain list of users';
@@ -140,7 +134,6 @@ const useNotes = () => {
         setIsLoading(true);
         setError(null);
 
-        console.log(user.id)
         const data = {
             'user': user.id,
             'encryption_key': 'random encryption key useNotes.jsx',
@@ -149,12 +142,10 @@ const useNotes = () => {
 
         try {
             const response = await NotesService.shareNote(noteId, data);
-            console.log(response.data)
             return { success: true, data: response.data };
         } catch (err) {
             const errorMessage = err.response?.data?.message || 'Failed to obtain list of users';
             setError(errorMessage);
-            console.log(err)
             return { success: false, error: errorMessage };
         } finally {
             setIsLoading(false);

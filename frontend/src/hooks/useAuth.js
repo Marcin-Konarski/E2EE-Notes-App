@@ -4,13 +4,13 @@ import UserService from '@/services/UserService';
 import { setAccessToken } from '@/services/ApiClient';
 import { useUserContext } from '@/hooks/useUserContext';
 import useNotes from '@/hooks/useNotes';
-import { cognitoSignIn, cognitoSignUp } from '@/cryptography/AWS_Cognito/cognito';
+import { cognitoSignIn, cognitoSignUp } from '@/cryptography/AWS_Cognito/Cognito';
 
 const useAuth = () => {
+    const { fetchNotes } = useNotes();
+    const { user, login, logout, publicKey } = useUserContext();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-    const { user, login, logout, cognitoSession } = useUserContext();
-    const { fetchNotes } = useNotes();
 
     const register = async (data) => {
         logout(); // If some user is logged in. Log them out
@@ -33,11 +33,9 @@ const useAuth = () => {
         setIsLoading(true);
         setError(null);
 
-        console.log(data);
         const { email, username, password } = data;
         try{
             const cognitoResponse = await cognitoSignUp(email, username, password);
-            console.log(cognitoResponse)
             return { success: true };
         } catch (err) {
             const errorMessage = 'Registration to AWS Cognito Failed'
@@ -81,14 +79,16 @@ const useAuth = () => {
             const userResponse = await UserService.getUserDetails();
             const { username, password } = credentials;
             const cognitoResponse = await cognitoSignIn(username, password);
-            console.log(cognitoResponse)
-            cognitoSession.current = cognitoResponse;
             login(userResponse.data);
-            fetchNotes(); // Upon login fetch user's notes            
+            fetchNotes(); // Upon login fetch user's notes
+
+            if (!publicKey.current) {
+                // Fetch public key on login OR fetch already all public keys for every user - that's faster but it has to include current user's public key as well
+                
+            }
 
             return {success: true}
         } catch (err) {
-            console.log(err)
             let errorMessage = err.response?.data?.detail || err.response?.data?.message || err?.message || 'Login Failed';
             setError(errorMessage);
             return {success: false, error: errorMessage};
@@ -171,8 +171,23 @@ const useAuth = () => {
 
         try {
             const response = await EmailService.resendEmail(email) // TODO: Finish this hook!!!!!!!!!!!!!!!!!
-            if (response.status === 200)
-                return { success: true };
+            return { success: true };
+        } catch (err) {
+            const errorMessage = err.response?.data || 'Failed to send email';
+            setError(errorMessage);
+            return { success: false, error: errorMessage };
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const uploadPubliKey = async (key) => {
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            const response = await UserService.sendPublicKey({public_key: key});
+            return { success: true };
         } catch (err) {
             const errorMessage = err.response?.data || 'Failed to send email';
             setError(errorMessage);
@@ -199,7 +214,7 @@ const useAuth = () => {
         }
     };
 
-    return { register, cognitoRegister, verifyEmail, loginUser, loginOnPageRefresh, updateUser, changePassword, resendVerificationEmail, deleteUser, isLoading, error, setError };
+    return { register, cognitoRegister, verifyEmail, loginUser, loginOnPageRefresh, updateUser, changePassword, resendVerificationEmail, uploadPubliKey, deleteUser, isLoading, error, setError };
 }
 
 export default useAuth

@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import { CognitoIdentityProviderClient, InitiateAuthCommand, SignUpCommand, ConfirmSignUpCommand, DeleteUserCommand } from "@aws-sdk/client-cognito-identity-provider";
 
-import { makeCognitoPasswordHash } from "@/cryptography/hashing/createHash.js";
-import config from "./config.js";
+import { makeCognitoPasswordHash } from "@/cryptography/hashing/CreateHash";
+import config from "@/cryptography/AWS_Cognito/Config";
 
 
 const cognitoClient = new CognitoIdentityProviderClient({
@@ -61,7 +61,6 @@ const cognitoSignUp = async (email, username, password) => {
   try {
     const command = new SignUpCommand(params);
     const response = await cognitoClient.send(command);
-    console.log("Sign up success: ", response);
     return response;
   } catch (error) {
     console.error("Error signing up: ", error);
@@ -111,7 +110,6 @@ const cognitoRefreshAccessToken = async () => {
       sessionStorage.setItem("idToken", AuthenticationResult.IdToken || "");
       sessionStorage.setItem("accessToken", AuthenticationResult.AccessToken || "");
 
-      console.log("Access token refreshed successfully");
       return AuthenticationResult;
     }
   } catch (error) {
@@ -128,15 +126,12 @@ const cognitoDeleteUser = async () => {
     accessToken = sessionStorage.getItem("accessToken");
   }
 
-  console.log('accessToken', accessToken)
-
   const params = {
     AccessToken: accessToken,
   };
   try {
     const command = new DeleteUserCommand(params);
     await cognitoClient.send(command);
-    console.log("User confirmed successfully");
     return true;
   } catch (error) {
     console.error("Error confirming sign up: ", error);

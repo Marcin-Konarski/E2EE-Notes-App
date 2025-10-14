@@ -1,44 +1,46 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { useUserContext } from '@/hooks/useUserContext';
 import useAuth from '@/hooks/useAuth';
 import AlertError from '@/components/ui/AlertError';
 import AlertSuccess from '@/components/ui/AlertSuccess';
-import { confirmCognitoSignUp } from '@/cryptography/AWS_Cognito/cognito';
+import { confirmCognitoSignUp } from '@/cryptography/AWS_Cognito/Cognito';
 import EmailVerificationForm from '@/components/EmailVerificationForm';
+import useKeyPair from '@/cryptography/asymetric/useKeyPair';
+import { useUserContext } from '@/hooks/useUserContext';
 
 
 const EmailVerification = () => {
+  const navigate = useNavigate();
   const createdAccount = useLocation().state?.createdAccount;
   const email = useLocation().state?.email;
   const username = useLocation().state?.username;
   let password = useLocation().state?.password;
-  const navigate = useNavigate();
-  const { loginUser, verifyEmail, error, setError } = useAuth();
+  const { createRSAKeyPairForKeyWrapping  } = useKeyPair();
+  const { publicKey } = useUserContext();
+  const { loginUser, verifyEmail, uploadPubliKey, error, setError } = useAuth();
   const [status, setStatus] = useState('pending');
-  const [validating, setValidating] = useState(false);
-
-  useEffect(() => {
-    console.log('username', username)
-  }, [username])
+  const [validating, setValidating] = useState(false)
 
   const handleValidate = async (username, otp) => {
     setValidating(true);
     setError(null);
 
     try {
-      console.log(username, otp)
       await confirmCognitoSignUp(username, otp);
 
-      console.log(email, username, password)
       const backendStatus = await verifyEmail(email, username, password); // If we get here, Cognito confirmation was successful
-      password = ''
 
       if (backendStatus.success) {
-        await loginUser()
+
+        publicKey.current = await createRSAKeyPairForKeyWrapping(true);
+        await uploadPubliKey(JSON.stringify(publicKey.current));
+
+        await loginUser({username: username, password: password})
+        password = ''
+
         setStatus('success');
-        setTimeout(() => navigate('/'), 1500);
+        navigate('/');
       } else {
         setError(backendStatus.error || 'Failed to verify email on backend');
         setStatus('error');

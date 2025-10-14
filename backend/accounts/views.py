@@ -3,7 +3,7 @@ from django.conf import settings
 from rest_framework import status
 from rest_framework import serializers
 from rest_framework.decorators import action
-from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin
+from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -20,8 +20,8 @@ from .tasks import send_verification_mail
 from .permissions import HasEmailVerifiedPermission
 
 
-# class UserViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, GenericViewSet): # No list action here
-class UserViewSet(ModelViewSet):
+class UserViewSet(CreateModelMixin, ListModelMixin, GenericViewSet): # No retrive action here
+# class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserCreateSerializer
     # permission_classes = [AllowAny]

@@ -1,13 +1,11 @@
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { zodResolver } from '@hookform/resolvers/zod'
 
 import useAuth from '@/hooks/useAuth'
 import { LoginFormSchema } from '@/lib/ValidationSchema'
 import LoginRegisterForm from '@/components/LoginRegisterForm'
-import AlertSuccess from '@/components/ui/AlertSuccess'
 import AlertLoadingError from '@/components/AlertLoadingError'
-import { Button } from '@/components/ui/Button'
 import { useEffect, useState } from 'react'
 
 
@@ -19,7 +17,6 @@ const Login = () => {
   useEffect(() => {
     if (error && (error.includes('not confirmed') || error === 'User is not confirmed.')) {
       setShowButton(true);
-      console.log('Error detected:', error);
     } else {
       setShowButton(false);
     }

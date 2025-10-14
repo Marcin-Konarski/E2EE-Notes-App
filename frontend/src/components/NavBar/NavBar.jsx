@@ -21,7 +21,7 @@ const NavBar = () => {
         if (status.success) {
             navigate(`/notes/${status.data.id}`);
         } else {
-            console.log(error);
+            // TODO: display Alert with error message
         }
     }
 

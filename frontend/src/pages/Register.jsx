@@ -16,7 +16,6 @@ const Register = () => {
     const {confirm, ...registerData } = data;
     const cognitoStatus = await cognitoRegister(registerData);
     if (cognitoStatus.success) {
-      console.log()
       const status = await register(registerData);
       if (status.success) {
         // One must pass all credentials as AWS cognito requires them in order to login user. Password is deleted from memory as soon as possible

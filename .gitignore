@@ -13,3 +13,6 @@ backend/.pytest_cache/
 .env/
 
 db_password.txt
+
+zalaczniki
+zalaczniki/*

@@ -35,6 +35,10 @@ class UserService {
         return apiClient.post('/users/jwt/refresh/');
     }
 
+    sendPublicKey(data) {
+        return apiClient.post('/users/keys/', data)
+    }
+
     async expireToken() {
         return apiClient.post('/users/jwt/expire/').catch(() => {
             return Promise.resolve() // If there are error - user might already be logged out thus ignore all errors
