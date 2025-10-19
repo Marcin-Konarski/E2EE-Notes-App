@@ -8,12 +8,14 @@ import NavBar from '@/components/NavBar/NavBar'
 import useAuth from '@/hooks/useAuth'
 import useNotes from '@/hooks/useNotes'
 import { useNotesContext } from '@/hooks/useNotesContext'
+import { useUserContext } from '@/hooks/useUserContext'
 
 
 export const LayoutOutlet = () => {
     const { loginOnPageRefresh } = useAuth();
     const { fetchNotes } = useNotes();
-    const { notes, setCurrentNote, storageNoteIdKey } = useNotesContext();
+    const { user } = useUserContext();
+    const { notes, updateNotes, setCurrentNote, storageNoteIdKey } = useNotesContext();
 
     useEffect(() => {
         const init = async () => {
@@ -26,6 +28,12 @@ export const LayoutOutlet = () => {
         }
         init();
     }, [])
+
+    useEffect(() => {
+        if (!user) {
+            updateNotes([]);
+        }
+    }, [user])
 
     return (
         <div className='h-screen flex flex-col'>

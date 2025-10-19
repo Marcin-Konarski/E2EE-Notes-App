@@ -4,7 +4,6 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import useAuth from '@/hooks/useAuth';
 import AlertError from '@/components/ui/AlertError';
 import AlertSuccess from '@/components/ui/AlertSuccess';
-import { confirmCognitoSignUp } from '@/cryptography/AWS_Cognito/Cognito';
 import EmailVerificationForm from '@/components/EmailVerificationForm';
 import useKeyPair from '@/cryptography/asymetric/useKeyPair';
 import { useUserContext } from '@/hooks/useUserContext';
@@ -27,9 +26,7 @@ const EmailVerification = () => {
     setError(null);
 
     try {
-      await confirmCognitoSignUp(username, otp);
-
-      const backendStatus = await verifyEmail(email, username, password); // If we get here, Cognito confirmation was successful
+      const backendStatus = await verifyEmail(email, otp);
 
       if (backendStatus.success) {
 

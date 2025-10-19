@@ -3,11 +3,8 @@ import EmailService from '@/services/EmailService';
 import UserService from '@/services/UserService';
 import { setAccessToken } from '@/services/ApiClient';
 import { useUserContext } from '@/hooks/useUserContext';
-import useNotes from '@/hooks/useNotes';
-import { cognitoSignIn, cognitoSignUp } from '@/cryptography/AWS_Cognito/Cognito';
 
 const useAuth = () => {
-    const { fetchNotes } = useNotes();
     const { user, login, logout, publicKey } = useUserContext();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -29,32 +26,15 @@ const useAuth = () => {
         }
     };
 
-    const cognitoRegister = async (data) => {
-        setIsLoading(true);
-        setError(null);
-
-        const { email, username, password } = data;
-        try{
-            const cognitoResponse = await cognitoSignUp(email, username, password);
-            return { success: true };
-        } catch (err) {
-            const errorMessage = 'Registration to AWS Cognito Failed'
-            return { success: false, error: errorMessage};
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const verifyEmail = async (email, username, password) => {
+    const verifyEmail = async (email, otp) => {
         setIsLoading(true);
         setError(null);
 
         try {
-            const response = await EmailService.confirmEmail({email: email});
+            const response = await EmailService.confirmEmail({email: email, otp: otp});
             const token = response.data.access_token;
 
             setAccessToken(token);
-            await cognitoSignIn(username, password);
 
             const userResponse = await UserService.getUserDetails();
             login(userResponse.data);
@@ -77,10 +57,7 @@ const useAuth = () => {
             const tokenResponse = await UserService.getTokens(credentials);
             setAccessToken(tokenResponse.data.access);
             const userResponse = await UserService.getUserDetails();
-            const { username, password } = credentials;
-            const cognitoResponse = await cognitoSignIn(username, password);
             login(userResponse.data);
-            fetchNotes(); // Upon login fetch user's notes
 
             if (!publicKey.current) {
                 // Fetch public key on login OR fetch already all public keys for every user - that's faster but it has to include current user's public key as well
@@ -214,7 +191,7 @@ const useAuth = () => {
         }
     };
 
-    return { register, cognitoRegister, verifyEmail, loginUser, loginOnPageRefresh, updateUser, changePassword, resendVerificationEmail, uploadPubliKey, deleteUser, isLoading, error, setError };
+    return { register, verifyEmail, loginUser, loginOnPageRefresh, updateUser, changePassword, resendVerificationEmail, uploadPubliKey, deleteUser, isLoading, error, setError };
 }
 
 export default useAuth

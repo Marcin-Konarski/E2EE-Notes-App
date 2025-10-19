@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { CognitoIdentityProviderClient, InitiateAuthCommand, SignUpCommand, ConfirmSignUpCommand, DeleteUserCommand } from "@aws-sdk/client-cognito-identity-provider";
 
-import { makeCognitoPasswordHash } from "@/cryptography/hashing/CreateHash";
+import { makeCognitoPasswordHash } from "@/cryptography/hashing/CreateHash"
 import config from "@/cryptography/AWS_Cognito/Config";
 
 

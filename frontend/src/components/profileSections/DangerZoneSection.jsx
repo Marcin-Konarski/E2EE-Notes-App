@@ -5,7 +5,6 @@ import useAuth from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import DialogInfo from '@/components/DialogInfo';
-import { cognitoDeleteUser } from '@/cryptography/AWS_Cognito/Cognito';
 
 const DangerZoneSection = () => {
     const { deleteUser } = useAuth();
@@ -19,10 +18,8 @@ const DangerZoneSection = () => {
     const handleDialogClick = async () => {
         setShowDialog(false);
         const status = await deleteUser();
-        if (status.success) {
-            await cognitoDeleteUser();
+        if (status.success)
             navigate('/login');
-        }
     };
 
     return (

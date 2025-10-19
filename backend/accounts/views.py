@@ -1,4 +1,8 @@
+import random
+import string
+
 from django.shortcuts import get_object_or_404
+from django.core.cache import cache
 from django.conf import settings
 from rest_framework import status
 from rest_framework import serializers
@@ -63,11 +67,14 @@ class UserViewSet(CreateModelMixin, ListModelMixin, GenericViewSet): # No retriv
     def create(self, request, *args, **kwargs):
         try:
             response = super().create(request, *args, **kwargs)
-            # if 201 == response.status_code: # Only if response status code is 201 send email verification mail to the specified mail in the JSON request
-            #     user_id = response.data.get('id')
-            #     username = response.data.get('username')
-            #     email = response.data.get('email')
-            #     send_verification_mail.delay(user_id, username, email)
+            username = response.data.get('username')
+            email = response.data.get('email')
+
+            otp = ''.join([random.choice(string.digits) for n in range(6)])
+            cache.set(f'otp:{email}', str(otp), timeout=3600) # OTP valid for 1 hour
+
+            send_verification_mail.delay(otp, username, email)
+
             return (response)
         except Exception as e: # In order to return the message of what went wrong with the account creation:
             serializer = self.get_serializer(data=request.data)
@@ -170,17 +177,19 @@ class UserActivationViewSet(APIViewBase):
         serializer.is_valid(raise_exception=True)
 
         email = serializer.validated_data['email']
-        # user_id = verify_activation_key(activation_key)
-
-        # if not user_id:
-        #     return Response({'status': 'Invalid or expired activation_key'}, status=status.HTTP_400_BAD_REQUEST)
+        otp = serializer.validated_data['otp']
 
         try:
             user = User.objects.get(email=email)
 
-            # if user.is_verified:
-            #     return Response({'status': 'Email already verified'}, status=status.HTTP_200_OK)
+            if user.is_verified:
+                return Response({'status': 'Email already verified'}, status=status.HTTP_200_OK)
 
+            chached_otp = cache.get(f'otp:{email}')
+            if chached_otp != str(otp):
+                return Response({'status': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
+
+            cache.delete(f'otp:{email}')
             user.is_verified = True
             user.save()
 

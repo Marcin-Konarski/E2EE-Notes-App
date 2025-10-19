@@ -1,0 +1,22 @@
+{% block subject %}
+Verify your email
+{% endblock %}
+
+{% block html_body %}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Email Verification</title>
+  </head>
+  <body>
+
+    <h1 style="font-size: 24px; font-weight: bold; margin: 0 0 20px;">Hello {{username}}</h1>
+
+    <p style="font-size: 16px; line-height: 1.6; margin: 0 0 30px;">
+    This is your verification code: {{otp}}
+    </p>
+
+  </body>
+</html>
+{% endblock %}

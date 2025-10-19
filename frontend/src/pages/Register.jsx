@@ -10,17 +10,14 @@ import AlertLoadingError from '@/components/AlertLoadingError';
 
 const Register = () => {
   const navigate = useNavigate();
-  const { register, cognitoRegister, isLoading, error } = useAuth();
+  const { register, isLoading, error } = useAuth();
 
   const onSubmit = async (data) => { // data has following structure: { data.email, data.username, data.password, data.confirm }
     const {confirm, ...registerData } = data;
-    const cognitoStatus = await cognitoRegister(registerData);
-    if (cognitoStatus.success) {
-      const status = await register(registerData);
-      if (status.success) {
-        // One must pass all credentials as AWS cognito requires them in order to login user. Password is deleted from memory as soon as possible
-        navigate('/verify', { state: { createdAccount: "successful", email: data.email, username: data.username, password: data.password } } );
-      }
+    const status = await register(registerData);
+    if (status.success) {
+      // One must pass all credentials as AWS cognito requires them in order to login user. Password is deleted from memory as soon as possible
+      navigate('/verify', { state: { createdAccount: "successful", email: data.email, username: data.username, password: data.password } } );
     }
   }
 

@@ -2,10 +2,9 @@ import { useCallback, useState } from 'react'
 import { useNotesContext } from '@/hooks/useNotesContext';
 import NotesService from '@/services/NotesService';
 import UserService from '@/services/UserService';
-import { useUserContext } from './useUserContext';
 
 const useNotes = () => {
-    const { notes, updateNotes, updateNote, addNote, removeNote } = useNotesContext();
+    const { updateNotes, updateNote, addNote } = useNotesContext();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 

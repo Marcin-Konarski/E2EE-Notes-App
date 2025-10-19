@@ -68,11 +68,8 @@ class UserKeySerializer(serializers.ModelSerializer):
 
 class UserActivationSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True, allow_blank=False)
+    otp = serializers.IntegerField(required=True)
 
-    def validate_activation_key(self, value):
-        if not value or value.strip() == "":
-            raise serializers.ValidationError("Email is required and cannot be empty.")
-        return value.strip()
 
 class ResendActivationEmailSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
@@ -98,7 +95,7 @@ class ResendActivationEmailSerializer(serializers.Serializer):
         return attrs
 
 # class AccessTokenSerializer(serializers.Serializer):
-#     access_token = serializers.CharField(required=True, allow_blank=False)
+#     access_token = serializers.IntegerField(required=True)
 
 #     def validate_access_token(self, value):
 #         if not value or value.strip() == "":
