@@ -5,7 +5,7 @@ import useAuth from '@/hooks/useAuth';
 import AlertError from '@/components/ui/AlertError';
 import AlertSuccess from '@/components/ui/AlertSuccess';
 import EmailVerificationForm from '@/components/EmailVerificationForm';
-import useKeyPair from '@/cryptography/asymetric/useKeyPair';
+import useKeyPair from '@/cryptography/asymetric/useAsymmetric';
 import { useUserContext } from '@/hooks/useUserContext';
 
 

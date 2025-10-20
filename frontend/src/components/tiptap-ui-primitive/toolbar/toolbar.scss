@@ -36,7 +36,7 @@
     z-index: 10;
     width: 100%;
     min-height: var(--tt-toolbar-height);
-    background: var(--color-background);
+    background-color: var(--background);
     border-bottom: 2px solid var(--tt-toolbar-border-color);
     padding: 0 0.5rem;
     overflow-x: auto;
@@ -44,23 +44,6 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     -ms-overflow-style: none;
-
-    // position: sticky;
-    // display: flex;
-    // justify-content: center;
-    // align-items: center;
-    // top: 0;
-    // z-index: 10;
-    // width: 40%;
-    // min-height: var(--tt-toolbar-height);
-    // background: var(--color-background);
-    // border: 2px solid var(--tt-toolbar-border-color);
-    // padding: 0 0.5rem;
-    // overflow-x: auto;
-    // overscroll-behavior-x: contain;
-    // -webkit-overflow-scrolling: touch;
-    // scrollbar-width: none;
-    // -ms-overflow-style: none;
 
     .simple-editor-wrapper-anonymous & {
       justify-content: center;
@@ -98,7 +81,7 @@
         var(--tt-toolbar-border-width)
     );
     border: var(--tt-toolbar-border-width) solid var(--tt-toolbar-border-color);
-    background-color: var(--tt-toolbar-bg-color);
+    background-color: var(--background);
     box-shadow: var(--tt-shadow-elevated-md);
     outline: none;
     overflow: hidden;

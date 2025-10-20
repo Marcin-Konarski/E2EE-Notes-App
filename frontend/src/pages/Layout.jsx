@@ -35,6 +35,10 @@ export const LayoutOutlet = () => {
         }
     }, [user])
 
+    useEffect(() => {
+        console.log(notes);
+    }, [notes])
+
     return (
         <div className='h-screen flex flex-col'>
             <NavBar />

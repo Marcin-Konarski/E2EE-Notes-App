@@ -2,12 +2,15 @@ import { useCallback, useState } from 'react'
 import { useNotesContext } from '@/hooks/useNotesContext';
 import NotesService from '@/services/NotesService';
 import UserService from '@/services/UserService';
+import { useNavigate } from 'react-router-dom';
+import useSymmetric from '@/cryptography/symmetric/useSymmetric';
 
 const useNotes = () => {
+    const navigate = useNavigate();
+    const { createSymmetricKey, exportSymmetricKey, manageEncryptedSymmetricKey } = useSymmetric();
     const { updateNotes, updateNote, addNote } = useNotesContext();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-
 
     const fetchNotes = useCallback(async () => {
         setIsLoading(true);
@@ -15,7 +18,10 @@ const useNotes = () => {
 
         try {
             const response = await NotesService.fetchNotes();
-            updateNotes(response.data);
+            console.log(response.data);
+            const notesWithCorrectKey = await manageEncryptedSymmetricKey(response.data) //* response.data is a list of notes. Each note comes with symmetric encrypted key. In order to use this key (decrypt notes) first one must decrypt and import those symmetric keys 
+            console.log(notesWithCorrectKey);
+            updateNotes(notesWithCorrectKey);
             return { success: true, data: response.data };
         } catch (err) {
             const errorMessage = err.response?.data?.message || 'Failed to fetch notes';
@@ -43,19 +49,20 @@ const useNotes = () => {
         }
     }, []);
 
-    const createEncryptedNote = useCallback(async (data, encryption_key) => {
+    const createEncryptedNote = useCallback(async (data, encryptionKey) => {
         setIsLoading(true);
         setError(null);
 
+        const encryptionKeyString = await exportSymmetricKey(encryptionKey);
         const newData = {
             ...data,
             is_encrypted: true,
-            encryption_key: encryption_key,
+            encryption_key: encryptionKeyString,
         }
 
         try {
             const response = await NotesService.createNote(newData);
-            addNote({...response.data, permission: 'O'}); // Add owner permission here as well in order to render newly created notes in the `My notes` section
+            addNote({...response.data, permission: 'O', encryption_key: encryptionKey}); // Add owner permission here as well in order to render newly created notes in the `My notes` section
             return { success: true, data: response.data };
         } catch (err) {
             const errorMessage = err.response?.data?.message || err.response?.data?.non_field_errors || err.response?.data || 'Failed to create note';
@@ -129,13 +136,13 @@ const useNotes = () => {
         }
     }, []);
 
-    const shareNote = useCallback(async (noteId, user, permission) => {
+    const shareNote = useCallback(async (noteId, encryption_key, user, permission) => {
         setIsLoading(true);
         setError(null);
 
         const data = {
             'user': user.id,
-            'encryption_key': 'random encryption key useNotes.jsx',
+            'encryption_key': await exportSymmetricKey(encryption_key), // manageEncryptedSymmetricKey takes a list of notes
             'permission': permission
         }
 
@@ -151,7 +158,17 @@ const useNotes = () => {
         }
     }, []);
 
-    return { fetchNotes, createNote, createEncryptedNote, saveUpdateNote, deleteNote, removeAccess, listUsers, shareNote, isLoading, error }
+    const handleNewNoteCreation = async () => {
+        const symmetricKey = await createSymmetricKey();
+        const status = await createEncryptedNote({title: 'New Note', body: ''}, symmetricKey); // During creation send empty key in order to make UI faster
+        if (status.success) {
+            navigate(`/notes/${status.data.id}`);
+        } else {
+            // TODO: display Alert with error message
+        }
+    }
+
+    return { fetchNotes, createNote, createEncryptedNote, saveUpdateNote, deleteNote, removeAccess, listUsers, shareNote, handleNewNoteCreation, isLoading, error }
 }
 
 export default useNotes

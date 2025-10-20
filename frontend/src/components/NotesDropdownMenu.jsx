@@ -45,7 +45,7 @@ const NotesDropdownMenu = ({ currentNote, onRename }) => {
   }
 
   const handleShare = async (user, permission) => {
-    const result = await shareNote(currentNote.id, user, permission)
+    const result = await shareNote(currentNote.id, currentNote.encryption_key, user, permission)
 
     if (result.success) {
       setShowShareDialog(false)

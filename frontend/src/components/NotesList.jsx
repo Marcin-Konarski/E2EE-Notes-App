@@ -56,10 +56,10 @@ const NotesList = () => {
                 </div>
             )}
 
-            <div className="flex flex-col h-full w-full">
+            <div className="flex flex-col h-full w-full px-10 lg:px-0">
                 {/* Tab Switch */}
-                <div className="px-4 py-3 border-b">
-                    <ButtonGroup className="w-full">
+                <div className="py-3 border-b">
+                    <ButtonGroup className="w-full mx-auto">
                         <Button variant={activeTab === 'my' ? 'default' : 'outline'} className="flex-1" onClick={() => setActiveTab('my')}>
                             My Notes ({myNotes.length})
                         </Button>
@@ -105,7 +105,7 @@ const NotesList = () => {
 const NoteItem = ({ item, isActive, isRenaming, newTitle, setNewTitle, onNoteClick, onRename, onRenameComplete, onRenameCancel }) => {
     if (isRenaming) {
         return (
-            <div className="px-4 py-3 border-b bg-accent/30">
+            <div className="px-2 py-2 border-b bg-accent/30">
                 <Input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} onBlur={onRenameComplete}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter') {
@@ -121,14 +121,11 @@ const NoteItem = ({ item, isActive, isRenaming, newTitle, setNewTitle, onNoteCli
     }
 
     return (
-        <div
-            className={cn("flex items-center justify-between px-4 py-3 border-b transition-colors cursor-pointer",
-                isActive
-                    ? "bg-accent/60" 
-                    : "hover:bg-accent/30 active:bg-accent/50"
-            )}
-            onClick={() => onNoteClick(item.id)}
-        >
+        <div className={cn("flex items-center justify-between px-4 py-2.5 border-b transition-colors cursor-pointer",
+            isActive
+                ? "bg-accent/60" 
+                : "hover:bg-accent/30 active:bg-accent/50"
+        )} onClick={() => onNoteClick(item.id)} >
             <div className="flex-1 min-w-0 mr-3">
                 <h4 className="text-sm font-medium truncate">{item.title}</h4>
             </div>

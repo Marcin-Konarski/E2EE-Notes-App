@@ -68,20 +68,28 @@ import { handleImageUpload, MAX_FILE_SIZE } from "@/lib/tiptap-utils"
 // --- Styles ---
 import "@/components/tiptap-templates/simple/simple-editor.scss"
 
-import content from "@/components/tiptap-templates/simple/data/content.json"
 import { IconButton } from '@/components/ui/Button'
 import { useUserContext } from '@/hooks/useUserContext'
-import { useNotesContext } from '@/hooks/useNotesContext'
-import { XIcon } from 'lucide-react'
+import { Plus, XIcon } from 'lucide-react'
 
 // --- Debounce library to improve performace of this editor ---
 import { useDebouncedCallback } from 'use-debounce'
 import useNotes from '@/hooks/useNotes'
+import useSymmetric from '@/cryptography/symmetric/useSymmetric'
+import { useNotesContext } from '@/hooks/useNotesContext'
 
 const MainToolbarContent = memo(({ onHighlighterClick, onLinkClick, isMobile, onClose }) => {
+  const { handleNewNoteCreation } = useNotes();
+
   return (
     <>
       {/* <Spacer /> */}
+      {!isMobile && onClose && // Close Button only on desktop menu and only for existing note
+        <ToolbarGroup>
+          <IconButton className='rounded-sm size-8' onClick={handleNewNoteCreation}>
+              <Plus className='size-5' />
+          </IconButton>
+        </ToolbarGroup>}
       <ToolbarGroup>
         <UndoRedoButton action="undo" />
         <UndoRedoButton action="redo" />
@@ -157,11 +165,12 @@ const MobileToolbarContent = memo(({ type, onBack }) => (
   </>
 ));
 
-function SimpleEditor({ onClose, content = '', noteTitle, noteId }) {
+function SimpleEditor({ onClose, content = '', noteTitle, noteId, encryptionKey }) {
   const isMobile = useIsMobile();
   const { height } = useWindowSize();
   const { user } = useUserContext();
   const { saveUpdateNote } = useNotes();
+  const { encryptNote, importSymmetricKey, decryptNote } = useSymmetric();
   const [mobileView, setMobileView] = useState("main");
   const toolbarRef = useRef(null);
 
@@ -212,10 +221,13 @@ function SimpleEditor({ onClose, content = '', noteTitle, noteId }) {
     autofocus: 'end',
     extensions: extensions,
     content: content || '',
-    onUpdate: useDebouncedCallback(() => {
+    onUpdate: useDebouncedCallback(async () => {
       const body = JSON.stringify(editor.getJSON());
+      const encrypted = await encryptNote(body, encryptionKey);
+      console.log('encrypted', encrypted);
+      const decrypted = await decryptNote(encrypted, encryptionKey);
       saveUpdateNote(noteId, {title: noteTitle, body: body});
-    }, 500)
+    }, 1000)
   }, [extensions, props])
 
 

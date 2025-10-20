@@ -1,29 +1,17 @@
 import { useEffect, useState } from "react";
-import { Book, Sunset, Trees, Key, FilePlus, Settings, LogOut} from "lucide-react";
+import { Book, FilePlus, Settings, LogOut} from "lucide-react";
 
 import ArxLogo from '@/assets/logo.svg'
 import { NavBarComponent } from '@/components/NavBar/NavBarComponent'
 import { useUserContext } from '@/hooks/useUserContext';
-import { useNotesContext } from "@/hooks/useNotesContext";
 import useNotes from "@/hooks/useNotes";
-import { useNavigate } from "react-router-dom";
 import DisappearingAlert from "../DisappearingAlert";
 
 
 const NavBar = () => {
-    const navigate = useNavigate();
     const { user, logout } = useUserContext();
-    const { createEncryptedNote, error } = useNotes();
+    const { handleNewNoteCreation, error } = useNotes();
     const [notesNavBar, setNotesNavBar] = useState({ title: "Notes", url: "/notes", });
-
-    const handleNewNoteCreation = async () => {
-        const status = await createEncryptedNote({title: 'New Note', body: ''}, 'encryption key NavBar.jsx');
-        if (status.success) {
-            navigate(`/notes/${status.data.id}`);
-        } else {
-            // TODO: display Alert with error message
-        }
-    }
 
     useEffect(() => {
         if (user) {
