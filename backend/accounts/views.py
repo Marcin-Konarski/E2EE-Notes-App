@@ -64,15 +64,18 @@ class UserViewSet(CreateModelMixin, ListModelMixin, GenericViewSet): # No retriv
 
         return Response(users_data, status=status.HTTP_200_OK)
 
+    def _make_otp(self, email):
+        otp = ''.join([random.choice(string.digits) for _ in range(6)])
+        cache.set(f'otp:{email}', str(otp), timeout=3600) # OTP valid for 1 hour
+        return otp
+
     def create(self, request, *args, **kwargs):
         try:
             response = super().create(request, *args, **kwargs)
             username = response.data.get('username')
             email = response.data.get('email')
 
-            otp = ''.join([random.choice(string.digits) for n in range(6)])
-            cache.set(f'otp:{email}', str(otp), timeout=3600) # OTP valid for 1 hour
-
+            otp = self._make_otp(email)
             send_verification_mail.delay(otp, username, email)
 
             return (response)
@@ -113,7 +116,9 @@ class UserViewSet(CreateModelMixin, ListModelMixin, GenericViewSet): # No retriv
             if original_email != new_email:
                 user.is_verified = False
                 user.save()
-                send_verification_mail.delay(str(user.id), new_username, new_email)
+
+                otp = self._make_otp(new_email)
+                send_verification_mail.delay(otp, new_username, new_email)
 
             return Response(serializer.data, status=status.HTTP_200_OK)
         elif request.method == 'DELETE':

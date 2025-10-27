@@ -86,12 +86,15 @@ class UserKey(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='keys') # If the referenced User is deleted associated AuthenticationKey record is deleted as well
     public_key = models.BinaryField(blank=False)
+    private_key = models.BinaryField(blank=False)
+    salt = models.BinaryField(blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def clean(self):
         super().clean()
-        if not self.public_key:
-            raise ValidationError({'public_key': 'Public key is required and cannot be empty.'})
+        for value in [self.public_key, self.private_key, self.salt]:
+            if not value:
+                raise ValidationError({value: f'{value} is required and cannot be empty.'})
 
     class Meta:
         swappable = "AUTH_USER_KEY_MODEL"

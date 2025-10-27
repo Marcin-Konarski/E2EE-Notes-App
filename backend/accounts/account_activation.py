@@ -20,25 +20,3 @@ def create_user_account_activation_link(user_id):
     activation_key = generate_activation_key(user_id)
     return f'{settings.FRONTEND_URL}/verify/{activation_key}'
 
-
-
-
-
-if __name__ == "__main__":
-    import os
-    import sys
-
-    PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    sys.path.append(PROJECT_ROOT)
-
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'app.settings')
-
-    import django
-    django.setup()
-
-    s = 'alamakota'
-    value = generate_activation_key(s)
-    print(f"Generated activation key: {value}")
-
-    original = verify_activation_key(value)
-    print(f"Verified user ID: {original}")

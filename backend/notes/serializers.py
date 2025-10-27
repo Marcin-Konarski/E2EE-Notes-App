@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from rest_framework import serializers
@@ -90,7 +89,7 @@ class NoteMeSerializer(serializers.ModelSerializer):
     id = serializers.CharField(source='note.id')
     title = serializers.CharField(source='note.title')
     body = serializers.SerializerMethodField(method_name='get_body')
-    owner = serializers.CharField(source='note.owner.username')
+    owner = serializers.SerializerMethodField()
     is_encrypted = serializers.BooleanField(source='note.is_encrypted')
     created_at = serializers.DateField(source='note.created_at')
     encryption_key = serializers.SerializerMethodField()
@@ -104,6 +103,11 @@ class NoteMeSerializer(serializers.ModelSerializer):
             body_bytes = bytes(obj.note.body)
             return body_bytes.decode(settings.DEFAULT_ENCODING)
         return ""
+
+    def get_owner(self, obj):
+        if obj.note.owner:
+            return obj.note.owner.username
+        return None # Return None in order to avoid errors
 
     def get_encryption_key(self, obj):
         if obj.encryption_key:

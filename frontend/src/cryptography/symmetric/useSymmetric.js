@@ -15,7 +15,7 @@ const useSymmetric = () => {
             true,
             ['encrypt', 'decrypt'],
         );
-        console.log('AES key:', key);
+        // console.log('AES key:', key);
 
         return key;
     };
@@ -38,17 +38,16 @@ const useSymmetric = () => {
             'raw',
             keyObject,
         );
-        console.log('export key: ', key);
+        // console.log('export key: ', key);
         const keyString = JSON.stringify(new Uint8Array(key));
-        console.log('string key: ', keyString);
+        // console.log('string key: ', keyString);
         return keyString; // returns string
     };
 
     const encryptNote = async (notePlainText, key) => {
-        const iv = new Uint8Array(16);
+        const iv = window.crypto.getRandomValues(new Uint8Array(16));
         const plainText = (new TextEncoder()).encode(notePlainText);
-        console.log('encryptNote', notePlainText, '\niv', iv, '\nkey', key);
-        window.crypto.getRandomValues(iv); // Modified in-place, and no copy is made
+        // console.log('encryptNote', notePlainText, '\niv', iv, '\nkey', key);
 
         const encrypted = await window.crypto.subtle.encrypt(
             {
@@ -58,14 +57,21 @@ const useSymmetric = () => {
             key,
             plainText
         );
-        console.log('xxx', encrypted);
+        // console.log('xxx', encrypted);
         const encryptedStore = new Uint8Array([...iv, ...new Uint8Array(encrypted)]);
-        console.log('encryptedStore', encryptedStore);
+        // console.log('encryptedStore', encryptedStore);
 
         return encryptedStore;
     };
 
-    const decryptNote = async (encryptedStore, key) => {
+    const decryptNote = async (encryptedStoreObject, key) => {
+
+        if (typeof encryptedStoreObject === 'string') {
+            encryptedStoreObject = JSON.parse(encryptedStoreObject);
+        }
+
+        const encryptedStore = new window.Uint8Array(Object.values(encryptedStoreObject));
+
         const iv = encryptedStore.slice(0, 16);
         const encrypted = encryptedStore.slice(16);
         const decrypted = await window.crypto.subtle.decrypt(
@@ -77,8 +83,6 @@ const useSymmetric = () => {
             encrypted
         );
         const plainText = (new TextDecoder('utf-8')).decode(decrypted);
-
-        console.log('plainText', plainText);
 
         return plainText
     };
@@ -94,12 +98,22 @@ const useSymmetric = () => {
             })
         );
 
-        // TODO: Here Decrypt all notes!
+        return updatedNotes;
+    };
+
+    const decryptAllNotes = async (notes) => {
+
+        const updatedNotes = await Promise.all(
+            notes.map(async (note) => {
+                note.body = await decryptNote(note.body, note.encryption_key);
+                return note;
+            })
+        );
 
         return updatedNotes;
     };
 
-    return { createSymmetricKey, importSymmetricKey, exportSymmetricKey, encryptNote, decryptNote, manageEncryptedSymmetricKey }
+    return { createSymmetricKey, importSymmetricKey, exportSymmetricKey, encryptNote, decryptNote, manageEncryptedSymmetricKey, decryptAllNotes }
 }
 
 export default useSymmetric

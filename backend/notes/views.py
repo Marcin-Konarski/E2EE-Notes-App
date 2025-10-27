@@ -194,7 +194,7 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
                 return Response({'detail': f'Updated {target_user} permissions to the note'}, status=status.HTTP_200_OK)
 
             if note.is_encrypted and not user_key_target:
-                return Response({'non_field_errors': [f'Public key required for encrypted notes. User {target_user} has to create UserKey at /users/users/keys/']}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'non_field_errors': [f'Public key is required for encrypted notes.']}, status=status.HTTP_400_BAD_REQUEST)
 
             if note.is_encrypted:
                 new_note_item = NoteItem.objects.create(
@@ -238,21 +238,21 @@ class NotesViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destr
         except Exception as e:
             return Response({'detail': f'An error occurred: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @action(detail=True, methods=['GET'])
-    def get_public_keys(self, request, pk=None):
-        """List public keys of all users who have access to specific note"""
-        note = self.get_object()
-        # Get user keys for current note as UserKey entries hold the user's public keys and in order to properly encrypt notes symmetric key must be encrypted with public keys of all users who have access to the note
-        users_public_key = NoteItem.objects.filter(note=note).select_related('user_key__user') # Here also get user that is realted to this user_key record as we want to reutrn user.id as well
+    # @action(detail=True, methods=['GET'])
+    # def get_public_keys(self, request, pk=None):
+    #     """List public keys of all users who have access to specific note"""
+    #     note = self.get_object()
+    #     # Get user keys for current note as UserKey entries hold the user's public keys and in order to properly encrypt notes symmetric key must be encrypted with public keys of all users who have access to the note
+    #     users_public_key = NoteItem.objects.filter(note=note).select_related('user_key__user') # Here also get user that is realted to this user_key record as we want to reutrn user.id as well
 
-        # Create the response data structure
-        response_data = {
-            'id': str(note.id),
-            'keys': users_public_key
-        }
+    #     # Create the response data structure
+    #     response_data = {
+    #         'id': str(note.id),
+    #         'keys': users_public_key
+    #     }
 
-        serializer = GetPublicKeySerializer(response_data)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    #     serializer = GetPublicKeySerializer(response_data)
+    #     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 # TODO: Endure only authenticated users (those that have confirmed their email address) can access those endpoints.

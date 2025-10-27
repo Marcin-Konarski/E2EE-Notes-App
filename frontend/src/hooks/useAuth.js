@@ -3,9 +3,13 @@ import EmailService from '@/services/EmailService';
 import UserService from '@/services/UserService';
 import { setAccessToken } from '@/services/ApiClient';
 import { useUserContext } from '@/hooks/useUserContext';
+import { useNotesContext } from './useNotesContext';
+import useNotes from './useNotes';
 
 const useAuth = () => {
     const { user, login, logout, publicKey } = useUserContext();
+    const { notes, setCurrentNote, storageNoteIdKey } = useNotesContext();
+    const { fetchNotes } = useNotes();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 
@@ -41,6 +45,7 @@ const useAuth = () => {
 
             return {success: true};
         } catch (err) {
+            console.log(err);
             const errorMessage = err.response?.data?.message || 'Verification failed';
             setError(errorMessage);
             return { success: false, error: errorMessage};
@@ -49,19 +54,28 @@ const useAuth = () => {
         }
     };
 
-    const loginUser = async (credentials) => {
+    const loginUser = async (credentials, getNotes = true) => {
         setIsLoading(true);
         setError(null);
 
         try {
             const tokenResponse = await UserService.getTokens(credentials);
             setAccessToken(tokenResponse.data.access);
-            const userResponse = await UserService.getUserDetails();
-            login(userResponse.data);
+            if (getNotes) {
+                const [userResponse, notesResponse] = await Promise.all([
+                    UserService.getUserDetails(),
+                    fetchNotes(),
+                ]);
+
+                login(userResponse.data);
+            } else {
+                const userResponse = UserService.getUserDetails();
+                login(userResponse.data);
+            }
 
             if (!publicKey.current) {
                 // Fetch public key on login OR fetch already all public keys for every user - that's faster but it has to include current user's public key as well
-                
+                  
             }
 
             return {success: true}
@@ -81,8 +95,13 @@ const useAuth = () => {
         try {
             const response = await UserService.refreshToken();
             setAccessToken(response.data.access);
-            const userDataResponse = await UserService.getUserDetails();
-            login(userDataResponse.data);
+
+            const [userResponse, notesResponse] = await Promise.all([
+                UserService.getUserDetails(),
+                fetchNotes(),
+            ]);
+
+            login(userResponse.data);
 
             return {success: true}
         } catch (err) {
@@ -158,12 +177,14 @@ const useAuth = () => {
         }
     };
 
-    const uploadPubliKey = async (key) => {
+    const uploadKeys = async (publicKey, privateKey, salt) => {
         setIsLoading(true);
         setError(null);
 
         try {
-            const response = await UserService.sendPublicKey({public_key: key});
+            console.log('upload data: ', publicKey, '\n', privateKey, '\n', salt)
+            const response = await UserService.sendKeys({public_key: publicKey, private_key: privateKey, salt: salt});
+            console.log(response)
             return { success: true };
         } catch (err) {
             const errorMessage = err.response?.data || 'Failed to send email';
@@ -191,7 +212,7 @@ const useAuth = () => {
         }
     };
 
-    return { register, verifyEmail, loginUser, loginOnPageRefresh, updateUser, changePassword, resendVerificationEmail, uploadPubliKey, deleteUser, isLoading, error, setError };
+    return { register, verifyEmail, loginUser, loginOnPageRefresh, updateUser, changePassword, resendVerificationEmail, uploadKeys, deleteUser, isLoading, error, setError };
 }
 
 export default useAuth

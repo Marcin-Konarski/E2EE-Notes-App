@@ -7,6 +7,7 @@ import AlertSuccess from '@/components/ui/AlertSuccess';
 import EmailVerificationForm from '@/components/EmailVerificationForm';
 import useKeyPair from '@/cryptography/asymetric/useAsymmetric';
 import { useUserContext } from '@/hooks/useUserContext';
+import useWrapingKey from '@/cryptography/useWrapingKey';
 
 
 const EmailVerification = () => {
@@ -15,12 +16,14 @@ const EmailVerification = () => {
   const email = useLocation().state?.email;
   const username = useLocation().state?.username;
   let password = useLocation().state?.password;
-  const { createRSAKeyPairForKeyWrapping  } = useKeyPair();
-  const { publicKey } = useUserContext();
-  const { loginUser, verifyEmail, uploadPubliKey, error, setError } = useAuth();
+  const { createRSAKeyPair } = useKeyPair();
+  const { deriveKeyFromPassword } = useWrapingKey();
+  const { userWrappingKey, userKeyPair} = useUserContext();
+  const { loginUser, verifyEmail, uploadKeys, error, setError } = useAuth();
   const [status, setStatus] = useState('pending');
   const [validating, setValidating] = useState(false)
 
+  //! Very bad code. Don't look at it (although it should be secure. I think)
   const handleValidate = async (username, otp) => {
     setValidating(true);
     setError(null);
@@ -28,24 +31,32 @@ const EmailVerification = () => {
     try {
       const backendStatus = await verifyEmail(email, otp);
 
-      if (backendStatus.success) {
+        if (createdAccount) {
+          const salt = window.crypto.getRandomValues(new Uint8Array(16));
+          const deriveKeyStatus = await deriveKeyFromPassword(password, salt);
+          console.log(deriveKeyStatus);
+          if (deriveKeyStatus?.success) {
+            userWrappingKey.current = deriveKeyStatus.key;
+            console.log('userWrappingKey.current', userWrappingKey.current);
 
-        publicKey.current = await createRSAKeyPairForKeyWrapping(true);
-        await uploadPubliKey(JSON.stringify(publicKey.current));
+            const createRSAKeyStatus = await createRSAKeyPair(userWrappingKey.current);
+            if (createRSAKeyStatus?.success) {
+              userKeyPair.current = createRSAKeyStatus.keyPair;
+              console.log('userKeyPair', userKeyPair.current);
+              console.log('RSA Key Pair', createRSAKeyStatus);
+              await uploadKeys(JSON.stringify(createRSAKeyStatus.publicKey), JSON.stringify(createRSAKeyStatus.privateKey), JSON.stringify(salt)); // TODO: Here also upload private key and salt for this password
+            }
+          }
+        }
 
-        await loginUser({username: username, password: password})
+        await loginUser({username: username, password: password}, false)
         password = ''
 
         setStatus('success');
         navigate('/');
-      } else {
-        setError(backendStatus.error || 'Failed to verify email on backend');
-        setStatus('error');
-      }
 
     } catch (err) {
       password = ''
-      console.error('Validation error:', err);
       setError(err.message || 'Invalid verification code. Please try again.');
       setStatus('error');
     } finally {
@@ -57,7 +68,7 @@ const EmailVerification = () => {
   if (status === 'success') {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
-        <AlertSuccess title={`Welcome ${username}!`} className="!block !p-4 w-full max-w-md" green={true}>
+        <AlertSuccess title={`Welcome ${username}!`} className="block p-4 w-full max-w-md" green={true}>
           Redirecting....
         </AlertSuccess>
       </div>
@@ -69,13 +80,13 @@ const EmailVerification = () => {
       <div className="flex flex-col w-full max-w-md space-y-6">
 
         {error && (
-          <AlertError title="ERROR" className="!block !p-4 w-full">
+          <AlertError title="ERROR" className="block p-4 w-full">
             {error}
           </AlertError>
         )}
 
         {createdAccount === 'successful' && !error && (
-          <AlertSuccess title="Success" className="!block !p-4 w-full" green={true}>
+          <AlertSuccess title="Success" className="block p-4 w-full" green={true}>
             <div className="space-y-3">
               <p>
                 Account was created successfully. Please check your email to verify your account. 

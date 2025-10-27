@@ -19,7 +19,7 @@ const DangerZoneSection = () => {
         setShowDialog(false);
         const status = await deleteUser();
         if (status.success)
-            navigate('/login');
+            navigate('/notes');
     };
 
     return (

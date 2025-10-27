@@ -8,13 +8,13 @@ const AlertLoadingError = ({isLoading, error, showButton, children}) => {
   return (
     <div className='flex flex-col justify-center mb-10' style={{ width: 'clamp(300px, 20vw, 800px)' }}>
         {isLoading && (
-            <AlertSuccess title={'Hold On'} className={'!block !py-4 w-full mb-5'} green={false}>
+            <AlertSuccess title={'Hold On'} className={'block py-4 w-full mb-5'} green={false}>
                 {children}
             </AlertSuccess>
         )}
 
         {error && (
-            <AlertError title={'Something Went Wrong'} className={'!block !py-4 w-full mb-5'}>
+            <AlertError title={'Something Went Wrong'} className={'block py-4 w-full mb-5'}>
                 <div className="w-full flex items-start justify-between gap-4">
                     <div className="text-sm leading-relaxed">
                         {error}

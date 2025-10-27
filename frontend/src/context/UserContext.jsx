@@ -7,8 +7,10 @@ export const UserContext = createContext(undefined);
 export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const userWrappingKey = useRef({});
     const userKeyPair = useRef({});
     const publicKey = useRef({});
+    const publicKeysList = useRef([]);
 
     const login = useCallback((data) => {
         setUser({
@@ -24,6 +26,7 @@ export const UserProvider = ({ children }) => {
         clearAccessToken();
         setUser(null);
         setIsLoggedIn(false);
+        userWrappingKey.current = {};
         userKeyPair.current = {};
         publicKey.current = {};
     }, []);
@@ -33,9 +36,11 @@ export const UserProvider = ({ children }) => {
         login,
         logout,
         isLoggedIn,
+        userWrappingKey,
         userKeyPair,
         publicKey,
-    }), [user, login, logout, isLoggedIn]);
+        publicKeysList
+    }), [user, login, logout, isLoggedIn, userWrappingKey, userKeyPair, publicKey, publicKeysList]);
 
     return (
         <UserContext.Provider value={values}>

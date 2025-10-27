@@ -7,12 +7,10 @@ import { LoginFormSchema } from '@/lib/ValidationSchema'
 import LoginRegisterForm from '@/components/LoginRegisterForm'
 import AlertLoadingError from '@/components/AlertLoadingError'
 import { useEffect, useState } from 'react'
-import useNotes from '@/hooks/useNotes'
 
 
 const Login = () => {
   const navigate = useNavigate();
-  const { fetchNotes } = useNotes();
   const { loginUser, isLoading, error } = useAuth();
   const [showButton, setShowButton] = useState(false);
 
@@ -28,7 +26,6 @@ const Login = () => {
     setShowButton(false);
     const result = await loginUser(data);
      if (result.success) {
-        await fetchNotes();
         navigate('/');
     }
   }

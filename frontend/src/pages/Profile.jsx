@@ -22,7 +22,7 @@ const Profile = () => {
 
   useEffect(() => { // If user is logged out move him out of the profile page - only logged in users have access to profile page
     if (!user)
-      navigate(-1);
+      navigate('/login');
   }, [user])
 
   useEffect(() => {
@@ -39,7 +39,10 @@ const Profile = () => {
     const result = await updateUser(data);
     if (result.success) {
       setResponseState('success');
-      setResponseData(result.response)
+      setResponseData(result.response);
+      setTimeout(() => {
+        (navigate('/verify', { state: { email: data.email, username: data.username } } ));
+      }, 1000);
     } else {
       setResponseState('error');   
     }

@@ -224,9 +224,10 @@ function SimpleEditor({ onClose, content = '', noteTitle, noteId, encryptionKey 
     onUpdate: useDebouncedCallback(async () => {
       const body = JSON.stringify(editor.getJSON());
       const encrypted = await encryptNote(body, encryptionKey);
-      console.log('encrypted', encrypted);
-      const decrypted = await decryptNote(encrypted, encryptionKey);
-      saveUpdateNote(noteId, {title: noteTitle, body: body});
+      const encryptedString = JSON.stringify(encrypted)
+      console.log(encryptedString)
+      // const decrypted = await decryptNote(encrypted, encryptionKey);
+      saveUpdateNote(noteId, {title: noteTitle, body: encryptedString});
     }, 1000)
   }, [extensions, props])
 
@@ -255,7 +256,7 @@ function SimpleEditor({ onClose, content = '', noteTitle, noteId, encryptionKey 
           }}>
           {mobileView === "main" ? (
             <MainToolbarContent onHighlighterClick={() => setMobileView("highlighter")} onLinkClick={() => setMobileView("link")}
-              isMobile={isMobile} className='!bg-background' onClose={onClose}/>
+              isMobile={isMobile} className='bg-background' onClose={onClose}/>
           ) : (
             <MobileToolbarContent type={mobileView === "highlighter" ? "highlighter" : "link"} onBack={() => setMobileView("main")} />
           )}

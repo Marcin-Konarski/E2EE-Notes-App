@@ -7,7 +7,7 @@ import useSymmetric from '@/cryptography/symmetric/useSymmetric';
 
 const useNotes = () => {
     const navigate = useNavigate();
-    const { createSymmetricKey, exportSymmetricKey, manageEncryptedSymmetricKey } = useSymmetric();
+    const { createSymmetricKey, exportSymmetricKey, manageEncryptedSymmetricKey, decryptAllNotes } = useSymmetric();
     const { updateNotes, updateNote, addNote } = useNotesContext();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -18,9 +18,10 @@ const useNotes = () => {
 
         try {
             const response = await NotesService.fetchNotes();
-            console.log(response.data);
+            // console.log(response.data);
             const notesWithCorrectKey = await manageEncryptedSymmetricKey(response.data) //* response.data is a list of notes. Each note comes with symmetric encrypted key. In order to use this key (decrypt notes) first one must decrypt and import those symmetric keys 
-            console.log(notesWithCorrectKey);
+            decryptAllNotes(notesWithCorrectKey)
+            // console.log(notesWithCorrectKey);
             updateNotes(notesWithCorrectKey);
             return { success: true, data: response.data };
         } catch (err) {
@@ -74,6 +75,7 @@ const useNotes = () => {
     }, []);
 
     const saveUpdateNote = useCallback(async (noteId, json) => {
+        setIsLoading(true);
         setError(null);
 
         try {

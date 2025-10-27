@@ -35,7 +35,7 @@ class UserService {
         return apiClient.post('/users/jwt/refresh/');
     }
 
-    sendPublicKey(data) {
+    sendKeys(data) {
         return apiClient.post('/users/keys/', data)
     }
 

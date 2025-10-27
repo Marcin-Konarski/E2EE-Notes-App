@@ -20,11 +20,10 @@ export const LayoutOutlet = () => {
     useEffect(() => {
         const init = async () => {
             const status = await loginOnPageRefresh();
-            if (status.success) {
-                await fetchNotes();
-                const currentNoteId = localStorage.getItem(storageNoteIdKey);
-                setCurrentNote(notes.find(note => note.id === currentNoteId));
-            }
+            // if (status.success) {
+                // const currentNoteId = localStorage.getItem(storageNoteIdKey);
+                // setCurrentNote(notes.find(note => note.id === currentNoteId));
+            // }
         }
         init();
     }, [])
@@ -36,7 +35,8 @@ export const LayoutOutlet = () => {
     }, [user])
 
     useEffect(() => {
-        console.log(notes);
+        const currentNoteId = localStorage.getItem(storageNoteIdKey);
+        setCurrentNote(notes.find(note => note.id === currentNoteId));
     }, [notes])
 
     return (
