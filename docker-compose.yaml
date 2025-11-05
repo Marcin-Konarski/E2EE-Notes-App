@@ -20,8 +20,6 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data/
-    secrets:
-      - db_password
 
   # Redis as message broker
   redis:
@@ -84,7 +82,3 @@ services:
 volumes:
   pgdata:
   frontend_node_modules:
-
-secrets:
-  db_password:
-    file: ./db_password.txt

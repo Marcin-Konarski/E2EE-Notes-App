@@ -7,10 +7,7 @@ export const UserContext = createContext(undefined);
 export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const userWrappingKey = useRef({});
-    const userKeyPair = useRef({});
-    const publicKey = useRef({});
-    const publicKeysList = useRef([]);
+    const userKeys = useRef({}); // userKeys contatins following attributes: userKeys.current.public_key, userKeys.current.userWrappingKey, userKeys.current.salt (all are set in the manageKeysOnLogin function in the useAuth.js)
 
     const login = useCallback((data) => {
         setUser({
@@ -26,21 +23,16 @@ export const UserProvider = ({ children }) => {
         clearAccessToken();
         setUser(null);
         setIsLoggedIn(false);
-        userWrappingKey.current = {};
-        userKeyPair.current = {};
-        publicKey.current = {};
+        userKeys.current = {};
     }, []);
 
     const values = useMemo(() => ({
         user,
         login,
         logout,
+        userKeys,
         isLoggedIn,
-        userWrappingKey,
-        userKeyPair,
-        publicKey,
-        publicKeysList
-    }), [user, login, logout, isLoggedIn, userWrappingKey, userKeyPair, publicKey, publicKeysList]);
+    }), [user, login, logout, userKeys, isLoggedIn]);
 
     return (
         <UserContext.Provider value={values}>

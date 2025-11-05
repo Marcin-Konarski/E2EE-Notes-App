@@ -29,7 +29,7 @@ const NotesList = () => {
             return;
         }
 
-        const status = await saveUpdateNote(item.id, { title: newTitle, body: item.body });
+        const status = await saveUpdateNote(item.id, newTitle, item.body, item.key);
         if (status.error) {
             setRenameError(status.error);
             setNewTitle(item.title);

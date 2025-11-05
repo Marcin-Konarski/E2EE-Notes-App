@@ -28,10 +28,10 @@ const useWrapingKey = () => {
                 ['wrapKey', 'unwrapKey'],
             );
 
-            return {success: true, key: key};
+            return key;
         } catch (err) {
             setError(err);
-            return { success: false, error: err};
+            return null;
         } finally {
             setIsLoading(false);
         }
@@ -59,10 +59,10 @@ const useWrapingKey = () => {
             const encryptedPrivateKeyStorage = new Uint8Array([...iv, ...new Uint8Array(wrappedKey)]);
 
             // console.log('encryptedPrivateKeyStorage', encryptedPrivateKeyStorage);
-            return {success: true, encryptedPrivateKeyStorage: encryptedPrivateKeyStorage};
+            return encryptedPrivateKeyStorage;
         } catch (err) {
             setError(err);
-            return { success: false, error: err};
+            return null;
         } finally {
             setIsLoading(false);
         }
@@ -86,14 +86,14 @@ const useWrapingKey = () => {
                 },
                 algorithm,
                 false,
-                ["wrapKey", "unwrapKey"],
+                ["unwrapKey"],
             );
 
             // console.log(privateKey);
             return privateKey;
         } catch (err) {
             setError(err);
-            return { success: false, error: err};
+            return null;
         } finally {
             setIsLoading(false);
         }

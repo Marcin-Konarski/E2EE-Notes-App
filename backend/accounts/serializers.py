@@ -1,3 +1,4 @@
+import base64
 from django.conf import settings
 from rest_framework import serializers
 
@@ -13,9 +14,9 @@ class UserCreateSerializer(serializers.ModelSerializer):
         return User.objects.create_user(**validated_data)
 
 class UserSerializer(serializers.ModelSerializer):
-    public_key = serializers.SerializerMethodField(read_only = True)
-    private_key = serializers.SerializerMethodField(read_only = True)
-    salt = serializers.SerializerMethodField(read_only = True)
+    public_key = serializers.SerializerMethodField(read_only=True)
+    private_key = serializers.SerializerMethodField(read_only=True)
+    salt = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
@@ -23,15 +24,21 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_public_key(self, obj):
         key = obj.keys.first()
-        return key.public_key if key else None
+        if not key or not key.public_key:
+            return None
+        return base64.b64encode(key.public_key).decode('ascii')
 
     def get_private_key(self, obj):
         key = obj.keys.first()
-        return key.private_key if key else None
+        if not key or not key.private_key:
+            return None
+        return base64.b64encode(key.private_key).decode('ascii')
 
     def get_salt(self, obj):
         key = obj.keys.first()
-        return key.salt if key else None
+        if not key or not key.salt:
+            return None
+        return base64.b64encode(key.salt).decode('ascii')
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -59,20 +66,25 @@ class UserKeySerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'public_key', 'private_key', 'salt', 'created_at']
         read_only_fields = ['created_at', 'user']
 
-    def validate_public_key(self, value):
+    def _encode_value(self, value, message):
         if not value or value.strip() == "":
-            raise serializers.ValidationError("public_key is required and cannot be empty.")
-        return value.encode(settings.DEFAULT_ENCODING) # Convert string to bytes for BinaryField
+            raise serializers.ValidationError(message)
+        try:
+            return base64.b64decode(value) # Convert string to bytes for BinaryField
+        except Exception as e:
+            raise serializers.ValidationError(f"Invalid base64 encoding: {str(e)}")
+
+    def validate_public_key(self, value):
+        message = "public_key is required and cannot be empty."
+        return self._encode_value(value, message)
 
     def validate_private_key(self, value):
-        if not value or value.strip() == "":
-            raise serializers.ValidationError("private_key is required and cannot be empty.")
-        return value.encode(settings.DEFAULT_ENCODING)
+        message = "private_key is required and cannot be empty."
+        return self._encode_value(value, message)
 
     def validate_salt(self, value):
-        if not value or value.strip() == "":
-            raise serializers.ValidationError("salt is required and cannot be empty.")
-        return value.encode(settings.DEFAULT_ENCODING)
+        message = "salt is required and cannot be empty."
+        return self._encode_value(value, message)
 
     def create(self, validated_data):
         try:
@@ -81,25 +93,19 @@ class UserKeySerializer(serializers.ModelSerializer):
             user_key = UserKey.objects.create(user=user, **validated_data)
             return user_key
         except User.DoesNotExist:
-            raise serializers.ValidationError({'detail': 'User must first be logged in and have valid JSON Web Token in header'})
+            raise serializers.ValidationError({'detail': 'User must be authenticated with valid JWT token'})
 
     def to_representation(self, instance): # This converts binary data to string for JSON response, otherwise GET /users/keys/<id> returns memory object instead of readable key
+        """Convert binary data to base64 for JSON response"""
         data = super().to_representation(instance)
-        if not instance.public_key or not instance.private_key or not instance.salt:
-            return data
-        
-        try:
-            public_key_bytes = bytes(instance.public_key)
-            private_key_bytes = bytes(instance.private_key)
-            salt = bytes(instance.salt)
-            data['public_key'] = public_key_bytes.decode(settings.DEFAULT_ENCODING)
-            data['private_key'] = private_key_bytes.decode(settings.DEFAULT_ENCODING)
-            data['salt'] = salt.decode(settings.DEFAULT_ENCODING)
-        except UnicodeDecodeError:
-            import base64 # Handle non-UTF-8 binary data
-            data['public_key'] = base64.b64encode(bytes(instance.public_key)).decode('ascii')
-            data['private_key'] = base64.b64encode(bytes(instance.private_key)).decode('ascii')
-            data['salt'] = base64.b64encode(bytes(instance.salt)).decode('ascii')
+
+        if instance.public_key:
+            data['public_key'] = base64.b64encode(instance.public_key).decode('ascii')
+        if instance.private_key:
+            data['private_key'] = base64.b64encode(instance.private_key).decode('ascii')
+        if instance.salt:
+            data['salt'] = base64.b64encode(instance.salt).decode('ascii')
+
         return data
 
 class UserActivationSerializer(serializers.Serializer):
@@ -125,7 +131,7 @@ class ResendActivationEmailSerializer(serializers.Serializer):
         """Check if user exists with provided email and username"""
         try:
             user = User.objects.get(email=attrs['email'], username=attrs['username'])
-            attrs['user'] = user  # Store user for later use
+            attrs['user'] = user # Store user for later use
         except User.DoesNotExist:
             raise serializers.ValidationError({'non_field_errors': ['No user found with this email and username combination.']})
         return attrs

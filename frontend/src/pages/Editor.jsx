@@ -40,7 +40,7 @@ const Editor = () => {
     };
 
     return (
-      <SimpleEditor key={currentNote.id} onClose={handleClose} content={parsedContent} noteTitle={currentNote.title} noteId={currentNote.id} encryptionKey={currentNote.encryption_key} />
+      <SimpleEditor key={currentNote.id} onClose={handleClose} content={parsedContent} noteTitle={currentNote.title} noteId={currentNote.id} encryptionKey={currentNote.key} />
     )
 }
 

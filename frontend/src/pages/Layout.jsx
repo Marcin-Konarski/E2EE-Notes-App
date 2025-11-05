@@ -14,16 +14,16 @@ import { useUserContext } from '@/hooks/useUserContext'
 export const LayoutOutlet = () => {
     const { loginOnPageRefresh } = useAuth();
     const { fetchNotes } = useNotes();
-    const { user } = useUserContext();
+    const { user, userKeys } = useUserContext();
     const { notes, updateNotes, setCurrentNote, storageNoteIdKey } = useNotesContext();
 
     useEffect(() => {
         const init = async () => {
             const status = await loginOnPageRefresh();
-            // if (status.success) {
-                // const currentNoteId = localStorage.getItem(storageNoteIdKey);
-                // setCurrentNote(notes.find(note => note.id === currentNoteId));
-            // }
+            if (status.success) {
+                const currentNoteId = localStorage.getItem(storageNoteIdKey);
+                setCurrentNote(notes.find(note => note.id === currentNoteId));
+            }
         }
         init();
     }, [])
@@ -32,11 +32,13 @@ export const LayoutOutlet = () => {
         if (!user) {
             updateNotes([]);
         }
+        console.log('userKeys', userKeys.current);
     }, [user])
 
     useEffect(() => {
         const currentNoteId = localStorage.getItem(storageNoteIdKey);
         setCurrentNote(notes.find(note => note.id === currentNoteId));
+        console.log('notes', notes);
     }, [notes])
 
     return (

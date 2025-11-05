@@ -1,5 +1,6 @@
 import random
 import string
+import base64
 
 from django.shortcuts import get_object_or_404
 from django.core.cache import cache
@@ -19,7 +20,6 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import User, UserKey
 from .serializers import UserCreateSerializer, UserSerializer, UserUpdateSerializer, UserKeySerializer, \
                         UserActivationSerializer, ResendActivationEmailSerializer
-from .account_activation import verify_activation_key
 from .tasks import send_verification_mail
 from .permissions import HasEmailVerifiedPermission
 
@@ -57,8 +57,12 @@ class UserViewSet(CreateModelMixin, ListModelMixin, GenericViewSet): # No retriv
                     'public_key': public_key_decoded
                 }
             except UnicodeDecodeError:
-                import base64
-                user_data['public_key'] = base64.b64decode(public_key_bytes).decode('ascii')
+                # user_data['public_key'] = base64.b64decode(public_key_bytes).decode('ascii')
+                user_data = {
+                    'id': str(user.id),
+                    'username': user.username,
+                    'public_key': base64.b64encode(public_key_bytes).decode('ascii')
+                }
 
             users_data.append(user_data)
 

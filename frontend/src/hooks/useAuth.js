@@ -3,18 +3,25 @@ import EmailService from '@/services/EmailService';
 import UserService from '@/services/UserService';
 import { setAccessToken } from '@/services/ApiClient';
 import { useUserContext } from '@/hooks/useUserContext';
-import { useNotesContext } from './useNotesContext';
 import useNotes from './useNotes';
+import { arrayBufferToBase64, base64ToArrayBuffer } from '@/lib/encoding'
+import useWrapingKey from '@/cryptography/useWrapingKey';
+import useAsymmetric from '@/cryptography/useAsymmetric';
+import useSymmetric from '@/cryptography/useSymmetric';
+import { useNotesContext } from './useNotesContext';
 
 const useAuth = () => {
-    const { user, login, logout, publicKey } = useUserContext();
-    const { notes, setCurrentNote, storageNoteIdKey } = useNotesContext();
     const { fetchNotes } = useNotes();
+    const { updateNotes } = useNotesContext();
+    const { user, login, logout, userKeys } = useUserContext();
+    const { deriveKeyFromPassword, unwrapPrivateKey } = useWrapingKey();
+    const { manageEncryptedSymmetricKey, decryptAllNotes } = useSymmetric();
+    const { createRSAKeyPair, importPublicKey } = useAsymmetric();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 
     const register = async (data) => {
-        logout(); // If some user is logged in. Log them out
+        logout(); // If some user is logged in, log them out
         setIsLoading(true);
         setError(null);
 
@@ -22,15 +29,15 @@ const useAuth = () => {
             const response = await UserService.createUser(data);
             return { success: true };
         } catch (err) {
-            const errorMessage = err.response?.data?.message || 'Registration Failed'
+            const errorMessage = err.response?.data?.message || 'Registration Failed';
             setError(errorMessage);
-            return { success: false, error: errorMessage};
+            return { success: false, error: errorMessage };
         } finally {
             setIsLoading(false);
         }
     };
 
-    const verifyEmail = async (email, otp) => {
+    const verifyEmail = async (username, email, otp, password) => {
         setIsLoading(true);
         setError(null);
 
@@ -40,7 +47,21 @@ const useAuth = () => {
 
             setAccessToken(token);
 
-            const userResponse = await UserService.getUserDetails();
+            const salt = window.crypto.getRandomValues(new Uint8Array(16));
+            const userWrappingArgon2Key = await deriveKeyFromPassword(password, salt);
+            password = '';
+            const { publicKey, wrappedPrivateKey, publicKeyStorage } = await createRSAKeyPair(userWrappingArgon2Key);
+
+            // const uploadKeysResponse = await uploadKeys(publicKeyStorage, wrappedPrivateKey, salt);
+            // const userResponse = await UserService.getUserDetails();
+
+            console.log('\npublicKey', publicKey,  '\nwrappedPrivateKey', wrappedPrivateKey, '\npublicKeyStorage', publicKeyStorage, '\nsalt', salt)
+            const [userResponse, uploadKeysResponse] = await Promise.all([
+                UserService.getUserDetails(),
+                uploadKeys(publicKeyStorage, wrappedPrivateKey, salt),
+            ])
+
+            userKeys.current.public_key = publicKey; // Remember public key in order to be able to encrypt notes (actually encrypt symmetric data keys used to encrypte notes in order to upload then to backend)
             login(userResponse.data);
 
             return {success: true};
@@ -54,35 +75,32 @@ const useAuth = () => {
         }
     };
 
-    const loginUser = async (credentials, getNotes = true) => {
+    const loginUser = async (credentials) => {
         setIsLoading(true);
         setError(null);
 
         try {
             const tokenResponse = await UserService.getTokens(credentials);
             setAccessToken(tokenResponse.data.access);
-            if (getNotes) {
-                const [userResponse, notesResponse] = await Promise.all([
-                    UserService.getUserDetails(),
-                    fetchNotes(),
-                ]);
 
-                login(userResponse.data);
-            } else {
-                const userResponse = UserService.getUserDetails();
-                login(userResponse.data);
-            }
+            const [userResponse, notesResponse] = await Promise.all([
+                UserService.getUserDetails(),
+                fetchNotes(),
+            ]);
 
-            if (!publicKey.current) {
-                // Fetch public key on login OR fetch already all public keys for every user - that's faster but it has to include current user's public key as well
-                  
-            }
+            await manageKeysOnLogin(credentials.password, userResponse.data.public_key, userResponse.data.private_key, userResponse.data.salt);
 
-            return {success: true}
+            const notesWithUnwrappedDataKey = await manageEncryptedSymmetricKey(notesResponse.data);
+            const notesWithDecryptedBody = await decryptAllNotes(notesWithUnwrappedDataKey);
+            await updateNotes(notesWithDecryptedBody);
+
+            login(userResponse.data);
+
+            return { success: true }
         } catch (err) {
             let errorMessage = err.response?.data?.detail || err.response?.data?.message || err?.message || 'Login Failed';
             setError(errorMessage);
-            return {success: false, error: errorMessage};
+            return { success: false, error: errorMessage };
         } finally {
             setIsLoading(false);
         }
@@ -96,7 +114,7 @@ const useAuth = () => {
             const response = await UserService.refreshToken();
             setAccessToken(response.data.access);
 
-            const [userResponse, notesResponse] = await Promise.all([
+            const [userResponse, notesResponse] = await Promise.all([ // Fetch user details and notes in parallel
                 UserService.getUserDetails(),
                 fetchNotes(),
             ]);
@@ -113,6 +131,35 @@ const useAuth = () => {
         }
     };
 
+    const manageKeysOnLogin = async (password, public_key, private_key, salt) => {
+        const RSAAlgorithm = {
+            name: "RSA-OAEP",
+            modulusLength: 4096,
+            publicExponent: new window.Uint8Array([1, 0, 1]),
+            hash: "SHA-256",
+        };
+
+        try {
+            userKeys.current.salt = base64ToArrayBuffer(salt);
+            const decodedPublicKey = base64ToArrayBuffer(public_key);
+            const decodedPrivateKey = base64ToArrayBuffer(private_key);
+
+            // userKeys.current.public_key = await importPublicKey(decodedPublicKey);
+            // userKeys.current.userWrappingKey = await deriveKeyFromPassword(password, userKeys.current.salt);
+            [userKeys.current.public_key, userKeys.current.userWrappingKey] = await Promise.all([
+                importPublicKey(decodedPublicKey),
+                deriveKeyFromPassword(password, userKeys.current.salt),``
+            ]);
+            password = ''
+
+            userKeys.current.private_key = await unwrapPrivateKey(userKeys.current.userWrappingKey, decodedPrivateKey, RSAAlgorithm);
+
+            return { success: true };
+        } catch (err) {
+            return { success: false, error: err };
+        }
+    }
+
     const updateUser = async (data) => {
         setIsLoading(true);
         setError(null);
@@ -126,13 +173,14 @@ const useAuth = () => {
 
         try {
             const response = await UserService.updateUser(data);
-            if (response.status === 200)
-                login(response.data);
+            if (response.status === 200){
+                login({...user, username: response.data.username, email: response.data.email});
 
                 if (email !== response.data.email)
-                    return {success: true, response: 'Profile updated successfully! Verification email has been sent. Please verify you account by clicking a link in the email.'}
+                    return {success: true, response: 'Profile updated successfully! Verification email has been sent. Please verify you account by clicking a link in the email.'};
+            }
 
-            return {success: true, response: response.data}
+            return {success: true, response: response.data};
         } catch (err) {
             const errorMessage = err.response?.data?.username || err.response?.data?.email || 'Failed updating user details';
             setError(errorMessage);
@@ -166,7 +214,7 @@ const useAuth = () => {
         setError(null);
 
         try {
-            const response = await EmailService.resendEmail(email) // TODO: Finish this hook!!!!!!!!!!!!!!!!!
+            const response = await EmailService.resendEmail(email);
             return { success: true };
         } catch (err) {
             const errorMessage = err.response?.data || 'Failed to send email';
@@ -182,12 +230,15 @@ const useAuth = () => {
         setError(null);
 
         try {
-            console.log('upload data: ', publicKey, '\n', privateKey, '\n', salt)
-            const response = await UserService.sendKeys({public_key: publicKey, private_key: privateKey, salt: salt});
-            console.log(response)
-            return { success: true };
+            const publicKeyBase64 = arrayBufferToBase64(publicKey);
+            const privateKeyBase64 = arrayBufferToBase64(privateKey);
+            const saltBase64 = arrayBufferToBase64(salt);
+
+            const response = await UserService.sendKeys({ public_key: publicKeyBase64, private_key: privateKeyBase64, salt: saltBase64 });
+
+            return { success: true, data: response.data};
         } catch (err) {
-            const errorMessage = err.response?.data || 'Failed to send email';
+            const errorMessage = err.response?.data || 'Failed to upload keys';
             setError(errorMessage);
             return { success: false, error: errorMessage };
         } finally {

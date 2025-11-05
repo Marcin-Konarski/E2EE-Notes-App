@@ -25,7 +25,7 @@ const Notes = memo(() => {
 
       {/* Desktop Layout */}
       <div className="hidden lg:block h-full w-full">
-        <ResizablePanelGroup direction="horizontal" className="w-full h-full border-t-1">
+        <ResizablePanelGroup direction="horizontal" className="w-full h-full border-t">
           <ResizablePanel defaultSize={16} minSize={16} maxSize={56} className='min-w-72'>
             <div className="flex w-full h-full items-start justify-start p-4">
               <div className='flex flex-col w-full gap-2'>

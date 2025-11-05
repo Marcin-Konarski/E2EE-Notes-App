@@ -74,9 +74,9 @@ import { Plus, XIcon } from 'lucide-react'
 
 // --- Debounce library to improve performace of this editor ---
 import { useDebouncedCallback } from 'use-debounce'
+
 import useNotes from '@/hooks/useNotes'
-import useSymmetric from '@/cryptography/symmetric/useSymmetric'
-import { useNotesContext } from '@/hooks/useNotesContext'
+import useSymmetric from '@/cryptography/useSymmetric'
 
 const MainToolbarContent = memo(({ onHighlighterClick, onLinkClick, isMobile, onClose }) => {
   const { handleNewNoteCreation } = useNotes();
@@ -170,7 +170,6 @@ function SimpleEditor({ onClose, content = '', noteTitle, noteId, encryptionKey 
   const { height } = useWindowSize();
   const { user } = useUserContext();
   const { saveUpdateNote } = useNotes();
-  const { encryptNote, importSymmetricKey, decryptNote } = useSymmetric();
   const [mobileView, setMobileView] = useState("main");
   const toolbarRef = useRef(null);
 
@@ -202,7 +201,7 @@ function SimpleEditor({ onClose, content = '', noteTitle, noteId, encryptionKey 
       emptyEditorClass: 'is-editor-empty',
       emptyNodeClass: 'is-empty',
     })
-  ], []); // Empty dependency array - extensions don't change
+  ], []);
 
   const props = useMemo(() => ({
     attributes: {
@@ -223,11 +222,8 @@ function SimpleEditor({ onClose, content = '', noteTitle, noteId, encryptionKey 
     content: content || '',
     onUpdate: useDebouncedCallback(async () => {
       const body = JSON.stringify(editor.getJSON());
-      const encrypted = await encryptNote(body, encryptionKey);
-      const encryptedString = JSON.stringify(encrypted)
-      console.log(encryptedString)
-      // const decrypted = await decryptNote(encrypted, encryptionKey);
-      saveUpdateNote(noteId, {title: noteTitle, body: encryptedString});
+      console.log('noteId\n', noteId, '\nnoteTitle\n', noteTitle, '\nbody\n', body, '\nencryptionKey\n', encryptionKey);
+      saveUpdateNote(noteId, noteTitle, body, encryptionKey);
     }, 1000)
   }, [extensions, props])
 

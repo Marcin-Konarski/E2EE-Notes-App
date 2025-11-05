@@ -1,14 +1,20 @@
 import { useCallback, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import { useUserContext } from './useUserContext';
 import { useNotesContext } from '@/hooks/useNotesContext';
 import NotesService from '@/services/NotesService';
 import UserService from '@/services/UserService';
-import { useNavigate } from 'react-router-dom';
-import useSymmetric from '@/cryptography/symmetric/useSymmetric';
+import useAsymmetric from '@/cryptography/useAsymmetric';
+import useSymmetric from '@/cryptography/useSymmetric';
+import { base64ToArrayBuffer } from '@/lib/encoding';
 
 const useNotes = () => {
     const navigate = useNavigate();
-    const { createSymmetricKey, exportSymmetricKey, manageEncryptedSymmetricKey, decryptAllNotes } = useSymmetric();
+    const { userKeys } = useUserContext();
     const { updateNotes, updateNote, addNote } = useNotesContext();
+    const { createSymmetricKey, encryptNote } = useSymmetric();
+    const { importPublicKey, wrapSymmetricKey } = useAsymmetric();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 
@@ -18,11 +24,7 @@ const useNotes = () => {
 
         try {
             const response = await NotesService.fetchNotes();
-            // console.log(response.data);
-            const notesWithCorrectKey = await manageEncryptedSymmetricKey(response.data) //* response.data is a list of notes. Each note comes with symmetric encrypted key. In order to use this key (decrypt notes) first one must decrypt and import those symmetric keys 
-            decryptAllNotes(notesWithCorrectKey)
-            // console.log(notesWithCorrectKey);
-            updateNotes(notesWithCorrectKey);
+            updateNotes(response.data);
             return { success: true, data: response.data };
         } catch (err) {
             const errorMessage = err.response?.data?.message || 'Failed to fetch notes';
@@ -50,20 +52,13 @@ const useNotes = () => {
         }
     }, []);
 
-    const createEncryptedNote = useCallback(async (data, encryptionKey) => {
+    const createEncryptedNote = useCallback(async (data, key) => {
         setIsLoading(true);
         setError(null);
 
-        const encryptionKeyString = await exportSymmetricKey(encryptionKey);
-        const newData = {
-            ...data,
-            is_encrypted: true,
-            encryption_key: encryptionKeyString,
-        }
-
         try {
-            const response = await NotesService.createNote(newData);
-            addNote({...response.data, permission: 'O', encryption_key: encryptionKey}); // Add owner permission here as well in order to render newly created notes in the `My notes` section
+            const response = await NotesService.createNote(data);
+            addNote({...response.data, permission: 'O', key: key});
             return { success: true, data: response.data };
         } catch (err) {
             const errorMessage = err.response?.data?.message || err.response?.data?.non_field_errors || err.response?.data || 'Failed to create note';
@@ -74,13 +69,27 @@ const useNotes = () => {
         }
     }, []);
 
-    const saveUpdateNote = useCallback(async (noteId, json) => {
+    const handleNewNoteCreation = async () => {
+        const key = await createSymmetricKey(); // Create random symmetric data key for encryping notes
+        const wrappedKey = await wrapSymmetricKey(key, userKeys.current.public_key); // Encrypt this data key in order to store it securely in backend
+
+        const status = await createEncryptedNote({title: 'New Note', body: '', is_encrypted: true, encryption_key: wrappedKey}, key);
+        if (status.success) {
+            navigate(`/notes/${status.data.id}`);
+        } else {
+            // TODO: display Alert with error message
+        }
+    }
+
+    const saveUpdateNote = useCallback(async (noteId, noteTitle, body, encryptionKey) => {
         setIsLoading(true);
         setError(null);
 
         try {
-            updateNote(noteId, json); // Update note in memory regardless of whether saving to backend was successful or not
-            const response = await NotesService.updateNote(noteId, json);
+            const encryptedBody = await encryptNote(body, encryptionKey);
+            console.log('body', body, '\n\nencryptedBody', encryptedBody);
+            updateNote(noteId, {title: noteTitle, body: body}); // Update note in memory regardless of whether saving to backend will be successful or not
+            await NotesService.updateNote(noteId, {title: noteTitle, body: encryptedBody});
             return {success: true }
         } catch (err) {
             const errorMessage = err.response?.data?.message || 'Failed to update note';
@@ -142,11 +151,17 @@ const useNotes = () => {
         setIsLoading(true);
         setError(null);
 
+        const userKeyArrayBuffer = base64ToArrayBuffer(user.public_key);
+        console.log(userKeyArrayBuffer)
+        const shareUserPublicKey = await importPublicKey(userKeyArrayBuffer);
+        console.log('\nnoteId', noteId, '\nencryption_key', encryption_key, '\nuser', user, '\nuser public key', shareUserPublicKey, '\npermission', permission)
+        const e = await wrapSymmetricKey(encryption_key, shareUserPublicKey);
         const data = {
             'user': user.id,
-            'encryption_key': await exportSymmetricKey(encryption_key), // manageEncryptedSymmetricKey takes a list of notes
+            'encryption_key': e,
             'permission': permission
         }
+        console.log(encryption_key, e);
 
         try {
             const response = await NotesService.shareNote(noteId, data);
@@ -160,17 +175,8 @@ const useNotes = () => {
         }
     }, []);
 
-    const handleNewNoteCreation = async () => {
-        const symmetricKey = await createSymmetricKey();
-        const status = await createEncryptedNote({title: 'New Note', body: ''}, symmetricKey); // During creation send empty key in order to make UI faster
-        if (status.success) {
-            navigate(`/notes/${status.data.id}`);
-        } else {
-            // TODO: display Alert with error message
-        }
-    }
 
-    return { fetchNotes, createNote, createEncryptedNote, saveUpdateNote, deleteNote, removeAccess, listUsers, shareNote, handleNewNoteCreation, isLoading, error }
+    return { fetchNotes, createNote, createEncryptedNote, handleNewNoteCreation, saveUpdateNote, deleteNote, removeAccess, listUsers, shareNote, isLoading, error }
 }
 
 export default useNotes

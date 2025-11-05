@@ -8,14 +8,12 @@ import useNotes from '@/hooks/useNotes'
 import DialogNotes from '@/components/DialogNotes'
 import { useNotesContext } from '@/hooks/useNotesContext'
 import { useUserContext } from '@/hooks/useUserContext'
-import useKeyPair from '@/cryptography/asymetric/useAsymmetric'
 
 const NotesDropdownMenu = ({ currentNote, onRename }) => {
   const navigate = useNavigate();
   const { user } = useUserContext();
   const { removeNote } = useNotesContext();
   const { deleteNote, removeAccess, listUsers, shareNote, isLoading, error } = useNotes();
-  const { wrapSymmetricKey } = useKeyPair();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [usersList, setUsersList] = useState([]);
@@ -48,13 +46,11 @@ const NotesDropdownMenu = ({ currentNote, onRename }) => {
   }
 
   const handleShare = async (user, permission) => {
-    console.log('user', user)
-    const encryptedKey = wrapSymmetricKey(currentNote.encryption_key, user.public_key)
-    const result = await shareNote(currentNote.id, currentNote.encryption_key, user, permission)
+    console.log('currentNote', currentNote);
+    const result = await shareNote(currentNote.id, currentNote.key, user, permission);
 
-    console.log(result);
     if (result.success) {
-      setShowShareDialog(false)
+      setShowShareDialog(false);
     }
   }
 
