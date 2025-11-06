@@ -4,7 +4,6 @@ import { useCallback, useEffect } from 'react';
 import { useNotesContext } from '@/hooks/useNotesContext';
 import SimpleEditor from '@/components/tiptap-templates/simple/simple-editor';
 import Blank from '@/pages/Blank';
-import useNotes from '@/hooks/useNotes';
 
 
 const Editor = () => {
@@ -40,7 +39,7 @@ const Editor = () => {
     };
 
     return (
-      <SimpleEditor key={currentNote.id} onClose={handleClose} content={parsedContent} noteTitle={currentNote.title} noteId={currentNote.id} encryptionKey={currentNote.key} />
+        <SimpleEditor key={currentNote.id} onClose={handleClose} content={parsedContent} noteTitle={currentNote.title} noteId={currentNote.id} encryptionKey={currentNote.key} />
     )
 }
 

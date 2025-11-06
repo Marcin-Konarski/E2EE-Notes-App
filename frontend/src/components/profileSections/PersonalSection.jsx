@@ -30,7 +30,7 @@ const PersonalSection = ({form, inputs, onSubmit, button}) => {
                           <FormItem>
                               <Label id={input.name}>{input.name}</Label>
                               <FormControl>
-                                  <Input id={input.name} type={input.type} {...field} />
+                                  <Input id={input.name} type={input.type} placeholder={input.name} {...field} />
                               </FormControl>
                               <FormMessage />
                           </FormItem>

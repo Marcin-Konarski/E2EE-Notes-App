@@ -55,7 +55,6 @@ const useAuth = () => {
             // const uploadKeysResponse = await uploadKeys(publicKeyStorage, wrappedPrivateKey, salt);
             // const userResponse = await UserService.getUserDetails();
 
-            console.log('\npublicKey', publicKey,  '\nwrappedPrivateKey', wrappedPrivateKey, '\npublicKeyStorage', publicKeyStorage, '\nsalt', salt)
             const [userResponse, uploadKeysResponse] = await Promise.all([
                 UserService.getUserDetails(),
                 uploadKeys(publicKeyStorage, wrappedPrivateKey, salt),
@@ -89,10 +88,7 @@ const useAuth = () => {
             ]);
 
             await manageKeysOnLogin(credentials.password, userResponse.data.public_key, userResponse.data.private_key, userResponse.data.salt);
-
-            const notesWithUnwrappedDataKey = await manageEncryptedSymmetricKey(notesResponse.data);
-            const notesWithDecryptedBody = await decryptAllNotes(notesWithUnwrappedDataKey);
-            await updateNotes(notesWithDecryptedBody);
+            await manageNotesDecryption(notesResponse.data);
 
             login(userResponse.data);
 
@@ -120,6 +116,9 @@ const useAuth = () => {
             ]);
 
             login(userResponse.data);
+            userKeys.current.responsePublicKey = userResponse.data.public_key; // Assign raw values from response to userKeys in order to remember them and be able to decrypt them
+            userKeys.current.responsePrivateKey = userResponse.data.private_key; // when password is provided inside this Notes.jsx so that all notes can be decrypted
+            userKeys.current.responseSalt = userResponse.data.salt;
 
             return {success: true}
         } catch (err) {
@@ -128,6 +127,20 @@ const useAuth = () => {
             return {success: false, error: errorMessage};
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const manageNotesDecryption = async (encryptedNotes) => {
+        try {
+            console.log('NOTES 1', encryptedNotes);
+            const notesWithUnwrappedDataKey = await manageEncryptedSymmetricKey(encryptedNotes);
+            const notesWithDecryptedBody = await decryptAllNotes(notesWithUnwrappedDataKey);
+            console.log('NOTES 2', notesWithDecryptedBody);
+            updateNotes(notesWithDecryptedBody);
+
+            return { success: true };
+        } catch (err) {
+            return { success: false, error: err };
         }
     };
 
@@ -148,7 +161,7 @@ const useAuth = () => {
             // userKeys.current.userWrappingKey = await deriveKeyFromPassword(password, userKeys.current.salt);
             [userKeys.current.public_key, userKeys.current.userWrappingKey] = await Promise.all([
                 importPublicKey(decodedPublicKey),
-                deriveKeyFromPassword(password, userKeys.current.salt),``
+                deriveKeyFromPassword(password, userKeys.current.salt),
             ]);
             password = ''
 
@@ -263,7 +276,7 @@ const useAuth = () => {
         }
     };
 
-    return { register, verifyEmail, loginUser, loginOnPageRefresh, updateUser, changePassword, resendVerificationEmail, uploadKeys, deleteUser, isLoading, error, setError };
+    return { register, verifyEmail, loginUser, loginOnPageRefresh, manageNotesDecryption, manageKeysOnLogin, updateUser, changePassword, resendVerificationEmail, uploadKeys, deleteUser, isLoading, error, setError };
 }
 
 export default useAuth

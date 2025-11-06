@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -40,9 +40,11 @@ const Profile = () => {
     if (result.success) {
       setResponseState('success');
       setResponseData(result.response);
-      setTimeout(() => {
-        (navigate('/verify', { state: { email: data.email, username: data.username } } ));
-      }, 1000);
+      if (data.email !== user.email) {
+        setTimeout(() => {
+          (navigate('/verify', { state: { email: data.email, username: data.username } } ));
+        }, 1000);
+      }
     } else {
       setResponseState('error');   
     }
@@ -91,19 +93,19 @@ const Profile = () => {
 
   const passwordInputs = [
     {
-      name: "currentPassword",
+      name: "CurrentPassword",
       type: "password",
       label: "Current password",
       placeholder: "••••••••",
     },
     {
-      name: "newPassword",
+      name: "NewPassword",
       type: "password",
       label: "New password",
       placeholder: "••••••••",
     },
     {
-      name: "confirmPassword",
+      name: "ConfirmPassword",
       type: "password",
       label: "Confirm new password",
       placeholder: "••••••••",

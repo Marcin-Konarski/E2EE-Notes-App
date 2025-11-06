@@ -222,7 +222,6 @@ function SimpleEditor({ onClose, content = '', noteTitle, noteId, encryptionKey 
     content: content || '',
     onUpdate: useDebouncedCallback(async () => {
       const body = JSON.stringify(editor.getJSON());
-      console.log('noteId\n', noteId, '\nnoteTitle\n', noteTitle, '\nbody\n', body, '\nencryptionKey\n', encryptionKey);
       saveUpdateNote(noteId, noteTitle, body, encryptionKey);
     }, 1000)
   }, [extensions, props])

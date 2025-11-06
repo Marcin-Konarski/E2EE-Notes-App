@@ -24,6 +24,7 @@ const useNotes = () => {
 
         try {
             const response = await NotesService.fetchNotes();
+            console.log('response', response);
             updateNotes(response.data);
             return { success: true, data: response.data };
         } catch (err) {
@@ -71,6 +72,7 @@ const useNotes = () => {
 
     const handleNewNoteCreation = async () => {
         const key = await createSymmetricKey(); // Create random symmetric data key for encryping notes
+        console.log('symmetric key for note 6', key)
         const wrappedKey = await wrapSymmetricKey(key, userKeys.current.public_key); // Encrypt this data key in order to store it securely in backend
 
         const status = await createEncryptedNote({title: 'New Note', body: '', is_encrypted: true, encryption_key: wrappedKey}, key);
