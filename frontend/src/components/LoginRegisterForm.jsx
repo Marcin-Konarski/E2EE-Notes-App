@@ -43,9 +43,9 @@ const LoginRegisterForm = ({ title, redirect, inputs, form, button, reset, onSub
                     {/* Button part */}
                     <div className='flex flex-col m-0'>
                         <Button type='submit'>{button}</Button>
-                        {reset && <Button variant='link' className='self-start -ml-2' asChild>
+                        {/* {reset && <Button variant='link' className='self-start -ml-2' asChild>
                             <Link to='/'>Forgot password?</Link>
-                        </Button>}
+                        </Button>} */}
                     </div>
 
                 </div>

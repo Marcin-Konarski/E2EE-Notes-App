@@ -18,12 +18,12 @@ const EmailVerification = () => {
   const [validating, setValidating] = useState(false)
 
   //! Very bad code. Don't look at it (although it should be secure. I think)
-  const handleValidate = async (username, otp) => {
+  const handleValidate = async (emailValue, otp) => {
     setValidating(true);
     setError(null);
 
     try {
-      await verifyEmail(username, email, otp, password);
+      await verifyEmail(emailValue, otp, password, createdAccount === 'successful'); // Pass true/false here so that if account was not created but only email is being verified from `Profile` componenet then keys are not recreated as this triggers bugs and is unnecessary at all 
 
       setStatus('success');
       navigate('/');
@@ -61,14 +61,14 @@ const EmailVerification = () => {
           <AlertSuccess title="Success" className="block p-4 w-full" green={true}>
             <div className="space-y-3">
               <p>
-                Account was created successfully. Please check your email to verify your account. 
-                Did not receive your email? Check spam or click below to resend.
+                Account was created successfully. Please<br />
+                check your email to verify your account.
               </p>
             </div>
           </AlertSuccess>
         )}
 
-        <EmailVerificationForm username={username} onValidate={handleValidate} isValidating={validating}/>
+        <EmailVerificationForm email={email} onValidate={handleValidate} isValidating={validating}/>
 
       </div>
     </div>

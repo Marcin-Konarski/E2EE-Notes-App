@@ -60,7 +60,7 @@ const UpdatePasswordSchema = z.object({
 });
 
 const EmailVerificationFormSchema = z.object({
-    username: z.string().min(1, {message: 'This field is required.'}),
+    email: z.string().min(1, {message: 'This field is required.'}),
 });
 
 // const userId = z.string().refine(async (id) => { //TODO: elaborate on this with zod

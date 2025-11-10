@@ -115,25 +115,19 @@ class UserActivationSerializer(serializers.Serializer):
 
 class ResendActivationEmailSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
-    username = serializers.CharField(required=True, allow_blank=False)
 
     def validate_email(self, value):
         if not value or value.strip() == "":
             raise serializers.ValidationError("Email is required.")
         return value
 
-    def validate_username(self, value):
-        if not value or value.strip() == "":
-            raise serializers.ValidationError("Username is required.")
-        return value.strip()
-
     def validate(self, attrs):
         """Check if user exists with provided email and username"""
         try:
-            user = User.objects.get(email=attrs['email'], username=attrs['username'])
-            attrs['user'] = user # Store user for later use
+            user = User.objects.get(email=attrs['email'])
+            attrs['user'] = user
         except User.DoesNotExist:
-            raise serializers.ValidationError({'non_field_errors': ['No user found with this email and username combination.']})
+            raise serializers.ValidationError({'non_field_errors': ['No user found with this email.']})
         return attrs
 
 # class AccessTokenSerializer(serializers.Serializer):

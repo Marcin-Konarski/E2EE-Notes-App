@@ -2,46 +2,49 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
-import { z } from 'zod';
 
+import useAuth from '@/hooks/useAuth';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/InputOTP";
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/Form';
 import { EmailVerificationFormSchema } from '@/lib/ValidationSchema';
 
-const EmailVerificationForm = ({ username, onValidate, isValidating }) => {
+const EmailVerificationForm = ({ email, onValidate, isValidating }) => {
   const [otp, setOtp] = useState("");
+  const { resendVerificationEmail } = useAuth();
 
   const form = useForm({
     resolver: zodResolver(EmailVerificationFormSchema),
     mode: 'onChange',
     defaultValues: {
-      username: username || '',
+      email: email || '',
     },
   });
 
   const handleSubmit = (data) => {
     if (otp.length !== 6) return;
-    onValidate(data.username, otp);
+    onValidate(email || data.email, otp);
   };
 
-  const handleResend = () => {
-    // TODO: Implement resend logic
+  const handleResend = async (data) => {
     console.log('Resend email clicked');
+    const result = await resendVerificationEmail(email || data.email);
+    console.log(result)
   };
 
+  const hasEmail = email && email.trim().length > 0;
   const isValid = otp.length === 6;
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col w-full max-w-md space-y-6">
 
-        {!username && (
-          <FormField control={form.control} name="username" render={({ field }) => (
+        {!hasEmail && (
+          <FormField control={form.control} name="email" render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input placeholder="Enter your username" type="string" disabled={isValidating} {...field} />
+                  <Input placeholder="Enter your email" type="email" disabled={isValidating} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

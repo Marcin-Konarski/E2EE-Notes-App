@@ -194,8 +194,17 @@ class UserActivationViewSet(APIViewBase):
             if user.is_verified:
                 return Response({'status': 'Email already verified'}, status=status.HTTP_200_OK)
 
-            chached_otp = cache.get(f'otp:{email}')
-            if chached_otp != str(otp):
+            cached_otp = cache.get(f'otp:{email}')
+
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"Received OTP: {otp} (type: {type(otp)})")
+            logger.info(f"Cached OTP: {cached_otp} (type: {type(cached_otp)})")
+
+            if not cached_otp:
+                return Response({'status': 'OTP expired or not found'}, status=status.HTTP_400_BAD_REQUEST)
+
+            if str(cached_otp) != str(otp):
                 return Response({'status': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
 
             cache.delete(f'otp:{email}')
@@ -211,6 +220,11 @@ class UserActivationViewSet(APIViewBase):
 class ResendActivationEmailViewSet(APIViewBase):
     serializer_class = ResendActivationEmailSerializer
 
+    def _make_otp(self, email):
+        otp = ''.join([random.choice(string.digits) for _ in range(6)])
+        cache.set(f'otp:{email}', str(otp), timeout=3600) # OTP valid for 1 hour
+        return otp
+
     def post(self, request, *args, **kwargs):
         """Resend email to user with new activation key"""
 
@@ -222,7 +236,8 @@ class ResendActivationEmailViewSet(APIViewBase):
         if user.is_verified:
             return Response({'status': 'Email already verified'}, status=status.HTTP_200_OK)
 
-        send_verification_mail.delay(str(user.id), user.username, user.email) # user.id must be string and not UUID object
+        otp = self._make_otp(user.email)
+        send_verification_mail.delay(otp, user.username, user.email)
 
         return Response({'message': 'Email sent successfuly'}, status=status.HTTP_200_OK)
 

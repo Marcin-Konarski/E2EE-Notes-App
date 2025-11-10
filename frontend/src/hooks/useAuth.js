@@ -37,7 +37,7 @@ const useAuth = () => {
         }
     };
 
-    const verifyEmail = async (username, email, otp, password) => {
+    const verifyEmail = async (email, otp, password, createdAccount) => {
         setIsLoading(true);
         setError(null);
 
@@ -46,6 +46,9 @@ const useAuth = () => {
             const token = response.data.access_token;
 
             setAccessToken(token);
+            if (!createdAccount) {
+                return {success: true};
+            }
 
             const salt = window.crypto.getRandomValues(new Uint8Array(16));
             const userWrappingArgon2Key = await deriveKeyFromPassword(password, salt);
@@ -60,6 +63,7 @@ const useAuth = () => {
                 uploadKeys(publicKeyStorage, wrappedPrivateKey, salt),
             ])
 
+            userKeys.current.userWrappingKey = userWrappingArgon2Key;
             userKeys.current.public_key = publicKey; // Remember public key in order to be able to encrypt notes (actually encrypt symmetric data keys used to encrypte notes in order to upload then to backend)
             login(userResponse.data);
 
@@ -227,7 +231,7 @@ const useAuth = () => {
         setError(null);
 
         try {
-            const response = await EmailService.resendEmail(email);
+            const response = await EmailService.resendEmail({email: email});
             return { success: true };
         } catch (err) {
             const errorMessage = err.response?.data || 'Failed to send email';
