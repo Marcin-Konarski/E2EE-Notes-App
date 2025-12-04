@@ -3,7 +3,10 @@
 A full-stack web application for creating, storing, and securely sharing notes. Application features End-To-End Encryption. All encryption is performed on the client side, ensuring the server cannot read note contents even if compromised. App was built as my engineering thesis.
 
 Application is available under:
+
 https://mk0x.com
+
+For production-ready code head to the `hosting` branch.
 
 ## Purpose
 
@@ -56,7 +59,7 @@ This structure enables multi-user access without exposing data to the server.
 
 Application is fully deployed and production-ready on DigitalOcean's VPS
 
-![Architecture Diagram](./app-architecture-4.png)
+![Architecture Diagram](./app-architecture-dark.png)
 
 The application uses a container-based structure with two networks:
 - **internal**: Postgres, Redis, Celery, Backend  
